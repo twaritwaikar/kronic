@@ -1,3 +1,3 @@
-add_executable(kronic
-    main.cpp
+add_library(kronic_engine
+    engine.cpp
 )

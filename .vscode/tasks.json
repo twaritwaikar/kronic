@@ -1,0 +1,33 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure kronic",
+            "type": "shell",
+            "command": "mkdir -f build && cd build && cmake .."
+        },
+        {
+            "label": "Configure kronic_tests",
+            "type": "shell",
+            "command": "mkdir -f build && cd build && cmake .. -DBUILD_TESTS=ON"
+        },
+        {
+            "label": "Build kronic Debug",
+            "type": "shell",
+            "command": "cd build && cmake --build . --config Debug"
+        },
+        {
+            "label": "Build kronic Release",
+            "type": "shell",
+            "command": "cd build && cmake --build . --config Release"
+        },
+        {
+            "label": "Build kronic_tests",
+            "type": "shell",
+            "command": "cd build && cmake --build ."
+        }
+
+    ]
+}
