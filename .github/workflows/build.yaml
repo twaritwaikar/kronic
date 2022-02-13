@@ -15,13 +15,13 @@ jobs:
         submodules: true
 
     - name: install dependencies
-      run: sudo apt-get update && sudo apt install -y vulkan-tools libvulkan-dev libglfw3-dev xorg-dev
+      run: sudo apt-get update && sudo apt install -y vulkan-tools libvulkan-dev xorg-dev
 
     - name: configure
       run: mkdir build && cd build && cmake .. -DBUILD_TESTS=ON
 
     - name: build
-      run: cd build && cmake --build . --config Debug
+      run: cd build && cmake --build . --config Debug -j2
 
     - name: test
       run: ./build/tests/kronic_tests
