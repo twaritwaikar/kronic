@@ -16,18 +16,17 @@
         {
             "label": "Build kronic Debug",
             "type": "shell",
-            "command": "cd build && cmake --build . --config Debug"
+            "command": "cd build && cmake --build . --config Debug -j8"
         },
         {
             "label": "Build kronic Release",
             "type": "shell",
-            "command": "cd build && cmake --build . --config Release"
+            "command": "cd build && cmake --build . --config Release -j8"
         },
         {
             "label": "Build kronic_tests",
             "type": "shell",
-            "command": "cd build && cmake --build ."
+            "command": "cd build && cmake --build . -j8"
         }
-
     ]
 }
