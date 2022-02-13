@@ -30,6 +30,13 @@ jobs:
     - name: test
       run: ./build/tests/kronic_tests
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: kronic-ubuntu-${{ github.sha }}
+        if-no-files-found: error
+        path: |
+          ./build/kronic/kronic
+
   windows:
     runs-on: "windows-latest"
     env:
@@ -62,3 +69,10 @@ jobs:
 
     - name: test
       run: ./build/tests/Debug/kronic_tests
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: kronic-windows-${{ github.sha }}
+        if-no-files-found: error
+        path: |
+          ./build/kronic/Debug/kronic.exe
