@@ -1,3 +1,9 @@
 [submodule "tests/vendor/googletest"]
 	path = tests/vendor/googletest/googletest
 	url = git@github.com:google/googletest.git
+[submodule "engine/vendor/spdlog/splog"]
+	path = engine/vendor/spdlog/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "engine/vendor/glm/glm"]
+	path = engine/vendor/glm/glm
+	url = https://github.com/g-truc/glm

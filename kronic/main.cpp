@@ -1,8 +1,8 @@
-#include <iostream>
+#include "core/common.h"
 
 int main()
 {
-	std::cout << "Hello World!" << std::endl;
+	Log::info("Hello World!");
 
 	return 0;
 }
