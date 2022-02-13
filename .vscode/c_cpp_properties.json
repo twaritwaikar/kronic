@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/tests/vendor/googletest/googletest/googletest/include",
                 "${workspaceFolder}/engine/vendor/spdlog/spdlog/include",
-                "${workspaceFolder}/engine/vendor/glm/glm"
+                "${workspaceFolder}/engine/vendor/glm/glm",
+                "${workspaceFolder}/engine/vendor/glfw/glfw/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -4,6 +4,6 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(glfw)
 
-target_include_directories(kronic_engine PRIVATE ${GLFW_INCLUDE_DIR})
+target_include_directories(kronic_engine PUBLIC ${GLFW_INCLUDE_DIR})
 
 target_link_libraries(kronic_engine PRIVATE glfw)

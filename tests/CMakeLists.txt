@@ -1,6 +1,4 @@
-add_executable(kronic_tests
-    main.cpp
-)
+add_executable(kronic_tests test.cpp)
 
 add_subdirectory(vendor)
 

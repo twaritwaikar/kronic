@@ -2,6 +2,7 @@ add_library(kronic_engine
     core/engine.cpp
     core/log.cpp
     core/math.cpp
+    app.cpp
 )
 
 target_include_directories(kronic_engine PUBLIC ./)
