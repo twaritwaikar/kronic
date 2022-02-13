@@ -1,7 +1,6 @@
 #include <stdexcept>
 
 #include "core/common.h"
-#include "core/math.h"
 #include "app.h"
 
 int main()

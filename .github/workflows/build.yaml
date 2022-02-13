@@ -4,10 +4,7 @@ on: [push]
 
 jobs:
   ubuntu:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ "ubuntu-latest" ]
+    runs-on: "ubuntu-latest"
 
     steps:
     - uses: actions/checkout@v2
@@ -15,13 +12,53 @@ jobs:
         submodules: true
 
     - name: install dependencies
-      run: sudo apt-get update && sudo apt install -y vulkan-tools libvulkan-dev xorg-dev
+      run: |
+        sudo apt-get update
+        sudo apt install -y vulkan-tools libvulkan-dev xorg-dev
 
     - name: configure
-      run: mkdir build && cd build && cmake .. -DBUILD_TESTS=ON
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DBUILD_TESTS=ON
 
     - name: build
-      run: cd build && cmake --build . --config Debug -j2
+      run: |
+        cd build
+        cmake --build . --config Debug -j2
 
     - name: test
       run: ./build/tests/kronic_tests
+
+  windows:
+    runs-on: "windows-latest"
+    env:
+      VULKAN_SDK: C:\VulkanSDK\
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: setup Vulkan
+      run: |
+          $ver = (Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/latest.json" | ConvertFrom-Json).windows
+          echo Version $ver
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$ver/windows/VulkanSDK-$ver-Installer.exe" -OutFile VulkanSDK.exe
+          echo Downloaded
+          .\VulkanSDK.exe --root C:\VulkanSDK  --accept-licenses --default-answer --confirm-command install
+
+    - name: configure
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DBUILD_TESTS=ON
+
+    - name: build
+      run: |
+        cd build
+        cmake --build . --config Debug -j2
+
+    - name: test
+      run: ./build/tests/Debug/kronic_tests
