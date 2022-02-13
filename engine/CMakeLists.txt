@@ -1,3 +1,7 @@
 add_library(kronic_engine
-    engine.cpp
+    core/engine.cpp
+)
+
+target_include_directories(kronic_engine PUBLIC
+    ./    
 )

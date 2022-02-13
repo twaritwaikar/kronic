@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/engine.h"
+#include "core/engine.h"
 #include "gtest/gtest.h"
 
 TEST(Maths, PiTest)
