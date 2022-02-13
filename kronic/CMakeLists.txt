@@ -1,7 +1,5 @@
-add_executable(kronic
+add_executable(kronic 
     main.cpp
 )
 
-target_link_libraries(kronic PRIVATE
-    kronic_engine
-)
+target_link_libraries(kronic PRIVATE kronic_engine)

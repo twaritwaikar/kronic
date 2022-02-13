@@ -1,0 +1,1 @@
+target_include_directories(kronic_engine PUBLIC glm)

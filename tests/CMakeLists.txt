@@ -4,6 +4,4 @@ add_executable(kronic_tests
 
 add_subdirectory(vendor)
 
-target_link_libraries(kronic_tests PRIVATE
-    kronic_engine
-)
+target_link_libraries(kronic_tests PRIVATE kronic_engine)
