@@ -10,6 +10,17 @@
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 
+const std::vector<const char*> validation_layers = {
+	"VK_LAYER_KHRONOS_VALIDATION"
+};
+
+const bool enable_validation_layers
+#ifdef NDEBUG
+    = false;
+#else
+    = true;
+#endif
+
 class HelloTriangleApplication
 {
 public:
@@ -36,8 +47,13 @@ private:
 		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 	}
 
-	void create_instance()
+	void _create_instance()
 	{
+		if (enable_validation_layers && !check_validation_layer_support())
+		{
+			throw std::runtime_error("Validation layers requestion, but not available");
+		}
+
 		VkApplicationInfo app_info {};
 
 		app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -92,6 +108,12 @@ private:
 		create_info.ppEnabledExtensionNames = glfw_extensions;
 		create_info.enabledLayerCount = 0;
 
+		if (enable_validation_layers)
+		{
+			create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
+			create_info.ppEnabledLayerNames = validation_layers.data();
+		}
+
 		if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS)
 		{
 			Log::critical("Could not create VKInstance");
@@ -99,9 +121,37 @@ private:
 		}
 	}
 
+	bool check_validation_layer_support()
+	{
+		uint32_t layer_count = 0;
+		vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+
+		std::vector<VkLayerProperties> available_layers(layer_count);
+		vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
+
+		for (const char* layer_name : validation_layers)
+		{
+			bool layer_found = false;
+
+			for (const auto& layer_properties : available_layers)
+			{
+				if (!strcmp(layer_name, layer_properties.layerName))
+				{
+					layer_found = true;
+					break;
+				}
+			}
+
+			if (!layer_found)
+			{
+				return false;
+			}
+		}
+	}
+
 	void _init_vulkan()
 	{
-		create_instance();
+		_create_instance();
 	}
 
 	void _main_loop()
