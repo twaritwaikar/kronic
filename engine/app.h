@@ -54,6 +54,10 @@ const std::vector<const char*> validation_layers = {
 	"VK_LAYER_KHRONOS_validation"
 };
 
+const std::vector<const char*> device_extensions = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
 const bool enable_validation_layers
 #ifdef NDEBUG
     = false;
@@ -70,6 +74,13 @@ public:
 		std::optional<uint32_t> present_family;
 
 		bool is_complete() { return graphics_family.has_value() && present_family.has_value(); }
+	};
+
+	struct SwapChainSupportDetails
+	{
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> present_modes;
 	};
 
 	void run()
@@ -90,6 +101,10 @@ private:
 	VkQueue graphics_queue;
 	VkQueue present_queue;
 	VkSurfaceKHR surface;
+	VkSwapchainKHR swap_chain;
+	std::vector<VkImage> swap_chain_images;
+	VkFormat swap_chain_image_format;
+	VkExtent2D swap_chain_extent;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -105,4 +120,10 @@ private:
 	QueueFamilyIndices _find_queue_families(VkPhysicalDevice device);
 	void _create_logical_device();
 	void _create_surface();
+	bool _check_device_extension_support(VkPhysicalDevice device);
+	SwapChainSupportDetails _query_swap_chain_support(VkPhysicalDevice device);
+	VkSurfaceFormatKHR _choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats);
+	VkPresentModeKHR _choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes);
+	VkExtent2D _choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
+	void _create_swap_chain();
 };
