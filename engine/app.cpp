@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <algorithm>
 
+#include "shaderc/shaderc.h"
+
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -194,6 +196,7 @@ void HelloTriangleApplication::_init_vulkan()
 	_pick_physical_device();
 	_create_logical_device();
 	_create_swap_chain();
+	_create_graphics_pipeline();
 }
 
 void HelloTriangleApplication::_main_loop()
@@ -209,6 +212,11 @@ void HelloTriangleApplication::_clean_up()
 	if (enable_validation_layers)
 	{
 		VULKAN_EXT(vkDestroyDebugUtilsMessengerEXT, instance, debug_messenger, nullptr);
+	}
+
+	for (auto& image_view : swap_chain_image_views)
+	{
+		vkDestroyImageView(device, image_view, nullptr);
 	}
 
 	vkDestroySwapchainKHR(device, swap_chain, nullptr);
@@ -540,4 +548,43 @@ void HelloTriangleApplication::_create_swap_chain()
 
 	swap_chain_image_format = surface_format.format;
 	swap_chain_extent = extent;
+}
+
+void HelloTriangleApplication::_create_image_views()
+{
+	swap_chain_image_views.resize(swap_chain_images.size());
+
+	for (int i = 0; i < swap_chain_images.size(); i++)
+	{
+		VkImageViewCreateInfo create_info {};
+		create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		create_info.image = swap_chain_images[i];
+		create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		create_info.format = swap_chain_image_format;
+		create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		create_info.subresourceRange.baseMipLevel = 0;
+		create_info.subresourceRange.levelCount = 1;
+		create_info.subresourceRange.baseArrayLayer = 0;
+		create_info.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(device, &create_info, nullptr, &swap_chain_image_views[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create image views");
+		}
+	}
+}
+
+void HelloTriangleApplication::_create_graphics_pipeline()
+{
+	shaderc_compiler_t compiler = shaderc_compiler_initialize();
+	shaderc_compilation_result_t result = shaderc_compile_into_spv(
+	    compiler, "#version 450\nvoid main() {}", 27,
+	    shaderc_glsl_vertex_shader, "engine/shader.vert", "main", nullptr);
+	// Do stuff with compilation results.
+	shaderc_result_release(result);
+	shaderc_compiler_release(compiler);
 }
