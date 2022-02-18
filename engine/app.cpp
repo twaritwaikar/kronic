@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include <set>
+
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -54,7 +56,7 @@ void HelloTriangleApplication::_add_debug_messenger_create_info(VkDebugUtilsMess
 
 void HelloTriangleApplication::_create_instance()
 {
-	if (enable_validation_layers && !check_validation_layer_support())
+	if (enable_validation_layers && !_check_validation_layer_support())
 	{
 		throw std::runtime_error("Validation layers requested, but not available");
 	}
@@ -138,7 +140,7 @@ std::vector<const char*> HelloTriangleApplication::_get_glfw_required_extensions
 	return extensions;
 }
 
-bool HelloTriangleApplication::check_validation_layer_support()
+bool HelloTriangleApplication::_check_validation_layer_support()
 {
 	uint32_t layer_count = 0;
 	CHECK_VULKAN(vkEnumerateInstanceLayerProperties(&layer_count, nullptr));
@@ -295,6 +297,13 @@ HelloTriangleApplication::QueueFamilyIndices HelloTriangleApplication::_find_que
 			indices.graphics_family = i;
 		}
 
+		VkBool32 present_support = false;
+		CHECK_VULKAN(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support));
+		if (present_support)
+		{
+			indices.present_family = i;
+		}
+
 		if (indices.is_complete())
 		{
 			break;
@@ -310,18 +319,24 @@ void HelloTriangleApplication::_create_logical_device()
 {
 	QueueFamilyIndices indices = _find_queue_families(physical_device);
 
-	VkDeviceQueueCreateInfo queue_create_info {};
-	queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queue_create_info.queueFamilyIndex = indices.graphics_family.value();
-	queue_create_info.queueCount = 1;
+	std::vector<VkDeviceQueueCreateInfo> queue_create_infos {};
+	std::set<uint32_t> unique_queue_families = { indices.graphics_family.value(), indices.present_family.value() };
 
 	float queue_priority = 1.0f;
-	queue_create_info.pQueuePriorities = &queue_priority;
+	for (uint32_t queue_family : unique_queue_families)
+	{
+		VkDeviceQueueCreateInfo queue_create_info {};
+		queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queue_create_info.queueFamilyIndex = queue_family;
+		queue_create_info.queueCount = 1;
+		queue_create_info.pQueuePriorities = &queue_priority;
+		queue_create_infos.push_back(queue_create_info);
+	}
 
 	VkDeviceCreateInfo create_info {};
 	create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	create_info.pQueueCreateInfos = &queue_create_info;
-	create_info.queueCreateInfoCount = 1;
+	create_info.pQueueCreateInfos = queue_create_infos.data();
+	create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
 
 	VkPhysicalDeviceFeatures device_features {};
 	create_info.pEnabledFeatures = &device_features;
@@ -341,6 +356,7 @@ void HelloTriangleApplication::_create_logical_device()
 	CHECK_VULKAN(vkCreateDevice(physical_device, &create_info, nullptr, &device));
 
 	vkGetDeviceQueue(device, indices.graphics_family.value(), 0, &graphics_queue);
+	vkGetDeviceQueue(device, indices.present_family.value(), 0, &present_queue);
 }
 
 void HelloTriangleApplication::_create_surface()

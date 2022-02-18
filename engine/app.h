@@ -67,8 +67,9 @@ public:
 	struct QueueFamilyIndices
 	{
 		std::optional<uint32_t> graphics_family;
+		std::optional<uint32_t> present_family;
 
-		bool is_complete() { return graphics_family.has_value(); }
+		bool is_complete() { return graphics_family.has_value() && present_family.has_value(); }
 	};
 
 	void run()
@@ -87,13 +88,14 @@ private:
 	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 	VkDevice device;
 	VkQueue graphics_queue;
+	VkQueue present_queue;
 	VkSurfaceKHR surface;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
 	void _create_instance();
 	std::vector<const char*> _get_glfw_required_extensions();
-	bool check_validation_layer_support();
+	bool _check_validation_layer_support();
 	void _setup_debug_messenger();
 	void _init_vulkan();
 	void _main_loop();
