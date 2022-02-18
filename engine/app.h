@@ -87,6 +87,7 @@ private:
 	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 	VkDevice device;
 	VkQueue graphics_queue;
+	VkSurfaceKHR surface;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -101,4 +102,5 @@ private:
 	uint32_t _calculate_device_score(VkPhysicalDevice device);
 	QueueFamilyIndices _find_queue_families(VkPhysicalDevice device);
 	void _create_logical_device();
+	void _create_surface();
 };

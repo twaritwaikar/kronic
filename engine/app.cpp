@@ -161,7 +161,7 @@ bool HelloTriangleApplication::check_validation_layer_support()
 
 		if (!layer_found)
 		{
-			Log::error("Vulkan: Could not find layer support: {}", layer_properties.layerName);
+			Log::error("Vulkan: Could not find layer support: {}", layer_name);
 			return false;
 		}
 	}
@@ -186,6 +186,7 @@ void HelloTriangleApplication::_init_vulkan()
 {
 	_create_instance();
 	_setup_debug_messenger();
+	_create_surface();
 	_pick_physical_device();
 	_create_logical_device();
 }
@@ -206,6 +207,7 @@ void HelloTriangleApplication::_clean_up()
 	}
 
 	vkDestroyDevice(device, nullptr);
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 
 	glfwDestroyWindow(window);
@@ -339,4 +341,12 @@ void HelloTriangleApplication::_create_logical_device()
 	CHECK_VULKAN(vkCreateDevice(physical_device, &create_info, nullptr, &device));
 
 	vkGetDeviceQueue(device, indices.graphics_family.value(), 0, &graphics_queue);
+}
+
+void HelloTriangleApplication::_create_surface()
+{
+	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create window surface");
+	}
 }
