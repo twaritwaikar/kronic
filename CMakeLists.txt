@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 
 set(CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 17)
