@@ -9,7 +9,7 @@
 #include "GLFW/glfw3.h"
 
 #ifdef NDEBUG
-#define CHECK_VULKAN(func)
+#define CHECK_VULKAN(func) func
 #else
 #define CHECK_VULKAN(func)                               \
 	do                                                   \

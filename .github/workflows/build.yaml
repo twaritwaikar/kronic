@@ -81,7 +81,7 @@ jobs:
         cmake --build . --config Release -j2
 
     - name: Test
-      run: ./build/tests/Debug/kronic_tests
+      run: ./build/tests/Release/kronic_tests
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
@@ -89,4 +89,4 @@ jobs:
         name: kronic-windows-${{ github.sha }}
         if-no-files-found: error
         path: |
-          ./build/kronic/Debug/kronic.exe
+          ./build/kronic/Release/kronic.exe
