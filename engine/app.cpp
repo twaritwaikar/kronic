@@ -204,6 +204,7 @@ void HelloTriangleApplication::_init_vulkan()
 	_create_frame_buffers();
 	_create_command_pool();
 	_create_command_buffers();
+	_create_semaphores();
 }
 
 void HelloTriangleApplication::_main_loop()
@@ -211,6 +212,7 @@ void HelloTriangleApplication::_main_loop()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+		_draw_frame();
 	}
 }
 
@@ -220,6 +222,9 @@ void HelloTriangleApplication::_clean_up()
 	{
 		VULKAN_EXT(vkDestroyDebugUtilsMessengerEXT, instance, debug_messenger, nullptr);
 	}
+
+	vkDestroySemaphore(device, render_finished_semaphore, nullptr);
+	vkDestroySemaphore(device, image_available_semaphore, nullptr);
 
 	vkDestroyCommandPool(device, command_pool, nullptr);
 
@@ -920,5 +925,45 @@ void HelloTriangleApplication::_create_command_buffers()
 		{
 			throw std::runtime_error("Failed to record command buffer");
 		}
+	}
+}
+
+void HelloTriangleApplication::_create_semaphores()
+{
+	VkSemaphoreCreateInfo semaphore_info {};
+	semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	if (vkCreateSemaphore(device, &semaphore_info, nullptr, &image_available_semaphore) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create image available semaphore");
+	}
+	if (vkCreateSemaphore(device, &semaphore_info, nullptr, &render_finished_semaphore) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create rendering semaphore");
+	}
+}
+
+void HelloTriangleApplication::_draw_frame()
+{
+	uint32_t image_index;
+
+	vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphore, VK_NULL_HANDLE, &image_index);
+
+	VkSubmitInfo submit_info {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore wait_semaphores[] = { image_available_semaphore };
+	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submit_info.waitSemaphoreCount = 1;
+	submit_info.pWaitSemaphores = wait_semaphores;
+	submit_info.pWaitDstStageMask = wait_stages;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &command_buffers[image_index];
+	VkSemaphore signal_semaphores[] = { render_finished_semaphore };
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores = signal_semaphores;
+
+	if (vkQueueSubmit(graphics_queue, 1, &submit_info, VK_NULL_HANDLE) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to submit draw command buffer");
 	}
 }

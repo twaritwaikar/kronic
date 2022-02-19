@@ -118,6 +118,8 @@ private:
 	std::vector<VkFramebuffer> swap_chain_frame_buffers;
 	VkCommandPool command_pool;
 	std::vector<VkCommandBuffer> command_buffers;
+	VkSemaphore image_available_semaphore;
+	VkSemaphore render_finished_semaphore;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -146,4 +148,6 @@ private:
 	void _create_frame_buffers();
 	void _create_command_pool();
 	void _create_command_buffers();
+	void _create_semaphores();
+	void _draw_frame();
 };
