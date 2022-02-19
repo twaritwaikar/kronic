@@ -76,6 +76,12 @@ public:
 		bool is_complete() { return graphics_family.has_value() && present_family.has_value(); }
 	};
 
+	enum class ShaderType
+	{
+		Vertex,
+		Fragment,
+	};
+
 	struct SwapChainSupportDetails
 	{
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -129,4 +135,5 @@ private:
 	void _create_swap_chain();
 	void _create_image_views();
 	void _create_graphics_pipeline();
+	VkShaderModule _compile_shader(const char* path, ShaderType type);
 };

@@ -2,9 +2,11 @@
 
 #include <set>
 #include <cstdint>
+#include <fstream>
 #include <algorithm>
+#include <string>
 
-#include "shaderc/shaderc.h"
+#include "shaderc/shaderc.hpp"
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -580,11 +582,77 @@ void HelloTriangleApplication::_create_image_views()
 
 void HelloTriangleApplication::_create_graphics_pipeline()
 {
-	shaderc_compiler_t compiler = shaderc_compiler_initialize();
-	shaderc_compilation_result_t result = shaderc_compile_into_spv(
-	    compiler, "#version 450\nvoid main() {}", 27,
-	    shaderc_glsl_vertex_shader, "engine/shader.vert", "main", nullptr);
-	// Do stuff with compilation results.
-	shaderc_result_release(result);
-	shaderc_compiler_release(compiler);
+	VkShaderModule vert_shader_module = _compile_shader("engine/shaders/shader.vert", ShaderType::Vertex);
+	VkShaderModule frag_shader_module = _compile_shader("engine/shaders/shader.frag", ShaderType::Fragment);
+
+	VkPipelineShaderStageCreateInfo vert_shader_stage_info {};
+	vert_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vert_shader_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vert_shader_stage_info.module = vert_shader_module;
+	vert_shader_stage_info.pName = "main";
+
+	VkPipelineShaderStageCreateInfo frag_shader_stage_info {};
+	frag_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	frag_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	frag_shader_stage_info.module = frag_shader_module;
+	frag_shader_stage_info.pName = "main";
+
+	// VkPipelineShaderStageCreateInfo shader_stages[2] = { vert_shader_module, frag_shader_module };
+
+	vkDestroyShaderModule(device, frag_shader_module, nullptr);
+	vkDestroyShaderModule(device, vert_shader_module, nullptr);
+}
+
+VkShaderModule HelloTriangleApplication::_compile_shader(const char* path, ShaderType type)
+{
+	std::vector<char> buffer;
+	{
+		std::ifstream shader_file { path, std::ios::ate | std::ios::binary };
+		if (!shader_file.is_open())
+		{
+			throw std::runtime_error("Failed to open shader");
+		}
+
+		size_t file_size = shader_file.tellg();
+		shader_file.seekg(0);
+		buffer.resize(file_size);
+		shader_file.read(buffer.data(), file_size);
+	}
+
+	const shaderc::Compiler compiler;
+
+	shaderc::CompileOptions options;
+	options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+	shaderc_shader_kind kind = shaderc_glsl_default_vertex_shader;
+	switch (type)
+	{
+	case ShaderType::Vertex:
+		kind = shaderc_glsl_vertex_shader;
+		break;
+	case ShaderType::Fragment:
+		kind = shaderc_glsl_fragment_shader;
+		break;
+	}
+
+	const shaderc::SpvCompilationResult compilation_result = compiler.CompileGlslToSpv(std::string(buffer.begin(), buffer.end()), kind, path, options);
+
+	if (compilation_result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		Log::error("Vulkan: Shader compilation error: {}", compilation_result.GetErrorMessage());
+		throw std::runtime_error("Could not compile shader");
+	}
+
+	VkShaderModuleCreateInfo create_info {};
+	create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	create_info.codeSize = sizeof(uint32_t) * (compilation_result.end() - compilation_result.begin());
+	create_info.pCode = reinterpret_cast<const uint32_t*>(compilation_result.begin());
+
+	VkShaderModule shader_module;
+	if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create shader module");
+	}
+
+	return shader_module;
 }
