@@ -112,6 +112,8 @@ private:
 	VkFormat swap_chain_image_format;
 	VkExtent2D swap_chain_extent;
 	std::vector<VkImageView> swap_chain_image_views;
+	VkRenderPass render_pass;
+	VkPipelineLayout pipeline_layout;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -136,4 +138,5 @@ private:
 	void _create_image_views();
 	void _create_graphics_pipeline();
 	VkShaderModule _compile_shader(const char* path, ShaderType type);
+	void _create_render_pass();
 };
