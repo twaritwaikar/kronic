@@ -198,8 +198,12 @@ void HelloTriangleApplication::_init_vulkan()
 	_pick_physical_device();
 	_create_logical_device();
 	_create_swap_chain();
+	_create_image_views();
 	_create_render_pass();
 	_create_graphics_pipeline();
+	_create_frame_buffers();
+	_create_command_pool();
+	_create_command_buffers();
 }
 
 void HelloTriangleApplication::_main_loop()
@@ -215,6 +219,13 @@ void HelloTriangleApplication::_clean_up()
 	if (enable_validation_layers)
 	{
 		VULKAN_EXT(vkDestroyDebugUtilsMessengerEXT, instance, debug_messenger, nullptr);
+	}
+
+	vkDestroyCommandPool(device, command_pool, nullptr);
+
+	for (auto& frame_buffer : swap_chain_frame_buffers)
+	{
+		vkDestroyFramebuffer(device, frame_buffer, nullptr);
 	}
 
 	vkDestroyPipeline(device, graphics_pipeline, nullptr);
@@ -717,7 +728,7 @@ void HelloTriangleApplication::_create_graphics_pipeline()
 	pipeline_info.pMultisampleState = &multisampling;
 	pipeline_info.pDepthStencilState = nullptr;
 	pipeline_info.pColorBlendState = &color_blending;
-	pipeline_info.pDynamicState = &dynamic_state;
+	pipeline_info.pDynamicState = nullptr;
 	pipeline_info.layout = pipeline_layout;
 	pipeline_info.renderPass = render_pass;
 	pipeline_info.subpass = 0;
@@ -819,5 +830,95 @@ void HelloTriangleApplication::_create_render_pass()
 	if (vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create render pass");
+	}
+}
+
+void HelloTriangleApplication::_create_frame_buffers()
+{
+	swap_chain_frame_buffers.resize(swap_chain_image_views.size());
+
+	for (size_t i = 0; i < swap_chain_image_views.size(); i++)
+	{
+		VkImageView attachments[] = {
+			swap_chain_image_views[i]
+		};
+
+		VkFramebufferCreateInfo frame_buffer_info {};
+		frame_buffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		frame_buffer_info.renderPass = render_pass;
+		frame_buffer_info.attachmentCount = 1;
+		frame_buffer_info.pAttachments = attachments;
+		frame_buffer_info.width = swap_chain_extent.width;
+		frame_buffer_info.height = swap_chain_extent.height;
+		frame_buffer_info.layers = 1;
+
+		if (vkCreateFramebuffer(device, &frame_buffer_info, nullptr, &swap_chain_frame_buffers[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create frame buffer");
+		}
+	}
+}
+
+void HelloTriangleApplication::_create_command_pool()
+{
+	QueueFamilyIndices queue_family_indices = _find_queue_families(physical_device);
+
+	VkCommandPoolCreateInfo pool_info {};
+	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
+	pool_info.flags = 0;
+
+	if (vkCreateCommandPool(device, &pool_info, nullptr, &command_pool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create command pool");
+	}
+}
+
+void HelloTriangleApplication::_create_command_buffers()
+{
+	command_buffers.resize(swap_chain_frame_buffers.size());
+
+	VkCommandBufferAllocateInfo alloc_info {};
+	alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	alloc_info.commandPool = command_pool;
+	alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	alloc_info.commandBufferCount = static_cast<uint32_t>(command_buffers.size());
+
+	if (vkAllocateCommandBuffers(device, &alloc_info, command_buffers.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate command buffers");
+	}
+
+	for (size_t i = 0; i < command_buffers.size(); i++)
+	{
+		VkCommandBufferBeginInfo begin_info {};
+		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		begin_info.flags = 0;
+		begin_info.pInheritanceInfo = nullptr;
+
+		if (vkBeginCommandBuffer(command_buffers[i], &begin_info) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to begin recording command buffer");
+		}
+
+		VkRenderPassBeginInfo render_pass_info {};
+		render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		render_pass_info.renderPass = render_pass;
+		render_pass_info.framebuffer = swap_chain_frame_buffers[i];
+		render_pass_info.renderArea.offset = { 0, 0 };
+		render_pass_info.renderArea.extent = swap_chain_extent;
+		VkClearValue clear_color = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+		render_pass_info.clearValueCount = 1;
+		render_pass_info.pClearValues = &clear_color;
+
+		vkCmdBeginRenderPass(command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+		vkCmdDraw(command_buffers[i], 3, 1, 0, 0);
+		vkCmdEndRenderPass(command_buffers[i]);
+
+		if (vkEndCommandBuffer(command_buffers[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to record command buffer");
+		}
 	}
 }
