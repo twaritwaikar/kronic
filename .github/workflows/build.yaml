@@ -18,6 +18,11 @@ jobs:
         vulkan-components: headers, loader, glslang, validation
         vulkan-use-cache: true
 
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt install -y xorg-dev
+
     - name: configure
       run: |
         mkdir build
