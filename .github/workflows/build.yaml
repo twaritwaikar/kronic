@@ -70,6 +70,11 @@ jobs:
         cd build
         cmake .. -DBUILD_TESTS=ON
 
+    # TODO: Fix this.
+    # We do a release build because the LunarG Vulkan SDK ships 
+    # with a shaderc_combined.lib that links to release mode 
+    # multithreaded runtime binaries. Doing a debug build with 
+    # it would lead to linking errors.
     - name: Build
       run: |
         cd build
