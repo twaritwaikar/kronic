@@ -114,6 +114,7 @@ private:
 	std::vector<VkImageView> swap_chain_image_views;
 	VkRenderPass render_pass;
 	VkPipelineLayout pipeline_layout;
+	VkPipeline graphics_pipeline;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
