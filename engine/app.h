@@ -49,6 +49,7 @@
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
+constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validation_layers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -118,8 +119,11 @@ private:
 	std::vector<VkFramebuffer> swap_chain_frame_buffers;
 	VkCommandPool command_pool;
 	std::vector<VkCommandBuffer> command_buffers;
-	VkSemaphore image_available_semaphore;
-	VkSemaphore render_finished_semaphore;
+	std::vector<VkSemaphore> image_available_semaphores;
+	std::vector<VkSemaphore> render_finished_semaphores;
+	std::vector<VkFence> in_flight_fences;
+	std::vector<VkFence> images_in_flight;
+	size_t current_frame = 0;
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -148,6 +152,6 @@ private:
 	void _create_frame_buffers();
 	void _create_command_pool();
 	void _create_command_buffers();
-	void _create_semaphores();
+	void _create_sync_objects();
 	void _draw_frame();
 };
