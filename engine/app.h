@@ -124,6 +124,9 @@ private:
 	std::vector<VkFence> in_flight_fences;
 	std::vector<VkFence> images_in_flight;
 	size_t current_frame = 0;
+	bool frame_buffer_resized = false;
+
+	static void _frame_buffer_resize_callback(GLFWwindow* window, int width, int height);
 
 	void _init_window();
 	void _add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
@@ -152,6 +155,9 @@ private:
 	void _create_frame_buffers();
 	void _create_command_pool();
 	void _create_command_buffers();
+	void _record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index);
 	void _create_sync_objects();
 	void _draw_frame();
+	void _recreate_swap_chain();
+	void _clean_up_swap_chain();
 };

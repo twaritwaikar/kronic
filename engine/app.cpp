@@ -41,14 +41,23 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
 	return VK_FALSE;
 }
 
+void HelloTriangleApplication::_frame_buffer_resize_callback(GLFWwindow* window, int width, int height)
+{
+	HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+	app->frame_buffer_resized = true;
+}
+
 void HelloTriangleApplication::_init_window()
 {
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+	window = glfwCreateWindow(WIDTH, HEIGHT, "kronic", nullptr, nullptr);
+
+	glfwSetWindowUserPointer(window, this);
+	glfwSetFramebufferSizeCallback(window, _frame_buffer_resize_callback);
 }
 
 void HelloTriangleApplication::_add_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info)
@@ -218,22 +227,8 @@ void HelloTriangleApplication::_main_loop()
 	vkDeviceWaitIdle(device);
 }
 
-void HelloTriangleApplication::_clean_up()
+void HelloTriangleApplication::_clean_up_swap_chain()
 {
-	if (enable_validation_layers)
-	{
-		VULKAN_EXT(vkDestroyDebugUtilsMessengerEXT, instance, debug_messenger, nullptr);
-	}
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
-		vkDestroySemaphore(device, render_finished_semaphores[i], nullptr);
-		vkDestroySemaphore(device, image_available_semaphores[i], nullptr);
-		vkDestroyFence(device, in_flight_fences[i], nullptr);
-	}
-
-	vkDestroyCommandPool(device, command_pool, nullptr);
-
 	for (auto& frame_buffer : swap_chain_frame_buffers)
 	{
 		vkDestroyFramebuffer(device, frame_buffer, nullptr);
@@ -249,6 +244,26 @@ void HelloTriangleApplication::_clean_up()
 	}
 
 	vkDestroySwapchainKHR(device, swap_chain, nullptr);
+}
+
+void HelloTriangleApplication::_clean_up()
+{
+	if (enable_validation_layers)
+	{
+		VULKAN_EXT(vkDestroyDebugUtilsMessengerEXT, instance, debug_messenger, nullptr);
+	}
+
+	_clean_up_swap_chain();
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroySemaphore(device, render_finished_semaphores[i], nullptr);
+		vkDestroySemaphore(device, image_available_semaphores[i], nullptr);
+		vkDestroyFence(device, in_flight_fences[i], nullptr);
+	}
+
+	vkDestroyCommandPool(device, command_pool, nullptr);
+
 	vkDestroyDevice(device, nullptr);
 
 	vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -568,7 +583,7 @@ void HelloTriangleApplication::_create_swap_chain()
 
 	if (vkCreateSwapchainKHR(device, &create_info, nullptr, &swap_chain) != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to create swap chain");
+		// throw std::runtime_error("Failed to create swap chain");
 	}
 
 	CHECK_VULKAN(vkGetSwapchainImagesKHR(device, swap_chain, &image_count, nullptr));
@@ -888,7 +903,7 @@ void HelloTriangleApplication::_create_command_pool()
 	VkCommandPoolCreateInfo pool_info {};
 	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
-	pool_info.flags = 0;
+	pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	if (vkCreateCommandPool(device, &pool_info, nullptr, &command_pool) != VK_SUCCESS)
 	{
@@ -910,38 +925,38 @@ void HelloTriangleApplication::_create_command_buffers()
 	{
 		throw std::runtime_error("Failed to allocate command buffers");
 	}
+}
 
-	for (size_t i = 0; i < command_buffers.size(); i++)
+void HelloTriangleApplication::_record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index)
+{
+	VkCommandBufferBeginInfo begin_info {};
+	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.flags = 0;
+	begin_info.pInheritanceInfo = nullptr;
+
+	if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
 	{
-		VkCommandBufferBeginInfo begin_info {};
-		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		begin_info.flags = 0;
-		begin_info.pInheritanceInfo = nullptr;
+		throw std::runtime_error("Failed to begin recording command buffer");
+	}
 
-		if (vkBeginCommandBuffer(command_buffers[i], &begin_info) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to begin recording command buffer");
-		}
+	VkRenderPassBeginInfo render_pass_info {};
+	render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_info.renderPass = render_pass;
+	render_pass_info.framebuffer = swap_chain_frame_buffers[image_index];
+	render_pass_info.renderArea.offset = { 0, 0 };
+	render_pass_info.renderArea.extent = swap_chain_extent;
+	VkClearValue clear_color = { { { 1.0f, 1.0f, 1.0f, 1.0f } } };
+	render_pass_info.clearValueCount = 1;
+	render_pass_info.pClearValues = &clear_color;
 
-		VkRenderPassBeginInfo render_pass_info {};
-		render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		render_pass_info.renderPass = render_pass;
-		render_pass_info.framebuffer = swap_chain_frame_buffers[i];
-		render_pass_info.renderArea.offset = { 0, 0 };
-		render_pass_info.renderArea.extent = swap_chain_extent;
-		VkClearValue clear_color = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-		render_pass_info.clearValueCount = 1;
-		render_pass_info.pClearValues = &clear_color;
+	vkCmdBeginRenderPass(command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+	vkCmdDraw(command_buffer, 3, 1, 0, 0);
+	vkCmdEndRenderPass(command_buffer);
 
-		vkCmdBeginRenderPass(command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
-		vkCmdDraw(command_buffers[i], 3, 1, 0, 0);
-		vkCmdEndRenderPass(command_buffers[i]);
-
-		if (vkEndCommandBuffer(command_buffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to record command buffer");
-		}
+	if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record command buffer");
 	}
 }
 
@@ -981,14 +996,23 @@ void HelloTriangleApplication::_draw_frame()
 	vkWaitForFences(device, 1, &in_flight_fences[current_frame], VK_TRUE, UINT64_MAX);
 
 	uint32_t image_index;
-	vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphores[current_frame], VK_NULL_HANDLE, &image_index);
+	VkResult result = vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphores[current_frame], VK_NULL_HANDLE, &image_index);
 
-	if (images_in_flight[image_index] != VK_NULL_HANDLE)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
-		vkWaitForFences(device, 1, &images_in_flight[image_index], VK_TRUE, UINT64_MAX);
+		_recreate_swap_chain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		throw std::runtime_error("Failed to acquire swap chain image");
 	}
 
-	images_in_flight[image_index] = in_flight_fences[current_frame];
+	// Only reset after we are sure that we will submit work
+	vkResetFences(device, 1, &in_flight_fences[current_frame]);
+
+	vkResetCommandBuffer(command_buffers[current_frame], 0);
+	_record_command_buffer(command_buffers[current_frame], image_index);
 
 	VkSubmitInfo submit_info {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -999,12 +1023,10 @@ void HelloTriangleApplication::_draw_frame()
 	submit_info.pWaitSemaphores = wait_semaphores;
 	submit_info.pWaitDstStageMask = wait_stages;
 	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &command_buffers[image_index];
+	submit_info.pCommandBuffers = &command_buffers[current_frame];
 	VkSemaphore signal_semaphores[] = { render_finished_semaphores[current_frame] };
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pSignalSemaphores = signal_semaphores;
-
-	vkResetFences(device, 1, &in_flight_fences[current_frame]);
 
 	if (vkQueueSubmit(graphics_queue, 1, &submit_info, in_flight_fences[current_frame]) != VK_SUCCESS)
 	{
@@ -1021,7 +1043,40 @@ void HelloTriangleApplication::_draw_frame()
 	present_info.pImageIndices = &image_index;
 	present_info.pResults = nullptr;
 
-	vkQueuePresentKHR(present_queue, &present_info);
+	result = vkQueuePresentKHR(present_queue, &present_info);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || frame_buffer_resized)
+	{
+		frame_buffer_resized = false;
+		_recreate_swap_chain();
+	}
+	else if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to present swap chain image");
+	}
 
 	current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void HelloTriangleApplication::_recreate_swap_chain()
+{
+	int width = 0;
+	int height = 0;
+	glfwGetFramebufferSize(window, &width, &height);
+
+	while (width == 0 || height == 0)
+	{
+		glfwGetFramebufferSize(window, &width, &height);
+		glfwWaitEvents();
+	}
+
+	vkDeviceWaitIdle(device);
+
+	_clean_up_swap_chain();
+
+	_create_swap_chain();
+	_create_image_views();
+	_create_render_pass();
+	_create_graphics_pipeline();
+	_create_frame_buffers();
 }
