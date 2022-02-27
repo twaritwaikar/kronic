@@ -212,6 +212,7 @@ void HelloTriangleApplication::_init_vulkan()
 	_create_graphics_pipeline();
 	_create_frame_buffers();
 	_create_command_pool();
+	_create_vertex_buffer();
 	_create_command_buffers();
 	_create_sync_objects();
 }
@@ -254,6 +255,9 @@ void HelloTriangleApplication::_clean_up()
 	}
 
 	_clean_up_swap_chain();
+
+	vkDestroyBuffer(device, vertex_buffer, nullptr);
+	vkFreeMemory(device, vertex_buffer_memory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -642,12 +646,15 @@ void HelloTriangleApplication::_create_graphics_pipeline()
 	VkPipelineShaderStageCreateInfo shader_stages[2] = { vert_shader_stage_info, frag_shader_stage_info };
 
 	// Input Assembly
+	VkVertexInputBindingDescription binding_description = Vertex::get_binding_description();
+	std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions = Vertex::get_attribute_descriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertex_input_info {};
 	vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertex_input_info.vertexBindingDescriptionCount = 0;
-	vertex_input_info.pVertexBindingDescriptions = nullptr;
-	vertex_input_info.vertexAttributeDescriptionCount = 0;
-	vertex_input_info.pVertexAttributeDescriptions = nullptr;
+	vertex_input_info.vertexBindingDescriptionCount = 1;
+	vertex_input_info.pVertexBindingDescriptions = &binding_description;
+	vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+	vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo input_assembly {};
 	input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -721,15 +728,15 @@ void HelloTriangleApplication::_create_graphics_pipeline()
 	color_blending.blendConstants[3] = 0.0f;
 
 	// Dynamic State
-	VkDynamicState dynamic_states[] = {
-		VK_DYNAMIC_STATE_VIEWPORT,
-		VK_DYNAMIC_STATE_LINE_WIDTH
-	};
+	// VkDynamicState dynamic_states[] = {
+	// 	VK_DYNAMIC_STATE_VIEWPORT,
+	// 	VK_DYNAMIC_STATE_LINE_WIDTH
+	// };
 
-	VkPipelineDynamicStateCreateInfo dynamic_state {};
-	dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamic_state.dynamicStateCount = 2;
-	dynamic_state.pDynamicStates = dynamic_states;
+	// VkPipelineDynamicStateCreateInfo dynamic_state {};
+	// dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	// dynamic_state.dynamicStateCount = 2;
+	// dynamic_state.pDynamicStates = dynamic_states;
 
 	// Pipeline layout
 	VkPipelineLayoutCreateInfo pipeline_layout_info = {};
@@ -945,13 +952,18 @@ void HelloTriangleApplication::_record_command_buffer(VkCommandBuffer command_bu
 	render_pass_info.framebuffer = swap_chain_frame_buffers[image_index];
 	render_pass_info.renderArea.offset = { 0, 0 };
 	render_pass_info.renderArea.extent = swap_chain_extent;
-	VkClearValue clear_color = { { { 1.0f, 1.0f, 1.0f, 1.0f } } };
+	VkClearValue clear_color = { { { 0.02f, 0.02f, 0.02f, 0.02f } } };
 	render_pass_info.clearValueCount = 1;
 	render_pass_info.pClearValues = &clear_color;
 
 	vkCmdBeginRenderPass(command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
-	vkCmdDraw(command_buffer, 3, 1, 0, 0);
+
+	VkBuffer vertex_buffers[] = { vertex_buffer };
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
+
+	vkCmdDraw(command_buffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 	vkCmdEndRenderPass(command_buffer);
 
 	if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
@@ -1079,4 +1091,55 @@ void HelloTriangleApplication::_recreate_swap_chain()
 	_create_render_pass();
 	_create_graphics_pipeline();
 	_create_frame_buffers();
+}
+
+void HelloTriangleApplication::_create_vertex_buffer()
+{
+	VkBufferCreateInfo buffer_info {};
+	buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_info.size = sizeof(vertices[0]) * vertices.size();
+	buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(device, &buffer_info, nullptr, &vertex_buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create vertex buffer");
+	}
+
+	VkMemoryRequirements mem_requirements;
+	vkGetBufferMemoryRequirements(device, vertex_buffer, &mem_requirements);
+
+	VkMemoryAllocateInfo alloc_info {};
+	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	alloc_info.allocationSize = mem_requirements.size;
+	alloc_info.memoryTypeIndex = _find_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	if (vkAllocateMemory(device, &alloc_info, nullptr, &vertex_buffer_memory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate vertex buffer");
+	}
+
+	vkBindBufferMemory(device, vertex_buffer, vertex_buffer_memory, 0);
+
+	void* data = nullptr;
+	vkMapMemory(device, vertex_buffer_memory, 0, buffer_info.size, 0, &data);
+	memcpy(data, vertices.data(), buffer_info.size);
+	vkUnmapMemory(device, vertex_buffer_memory);
+}
+
+uint32_t HelloTriangleApplication::_find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
+
+	for (uint32_t i = 0; memory_properties.memoryTypeCount; i++)
+	{
+		if ((type_filter & (1 << i))
+		    && (memory_properties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find suitable memory type");
 }

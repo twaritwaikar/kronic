@@ -1,9 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <optional>
 
 #include "core/log.h"
+#include "core/math.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
@@ -66,6 +68,40 @@ const bool enable_validation_layers
     = true;
 #endif
 
+struct Vertex
+{
+	Vector2 pos;
+	Vector3 color;
+
+	static VkVertexInputBindingDescription get_binding_description()
+	{
+		VkVertexInputBindingDescription bind;
+
+		bind.binding = 0;
+		bind.stride = sizeof(Vertex);
+		bind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bind;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 2> get_attribute_descriptions()
+	{
+		std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions {};
+
+		attribute_descriptions[0].binding = 0;
+		attribute_descriptions[0].location = 0;
+		attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attribute_descriptions[0].offset = offsetof(Vertex, pos);
+
+		attribute_descriptions[1].binding = 0;
+		attribute_descriptions[1].location = 1;
+		attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attribute_descriptions[1].offset = offsetof(Vertex, color);
+
+		return attribute_descriptions;
+	}
+};
+
 class HelloTriangleApplication
 {
 public:
@@ -125,6 +161,14 @@ private:
 	std::vector<VkFence> images_in_flight;
 	size_t current_frame = 0;
 	bool frame_buffer_resized = false;
+	const std::vector<Vertex> vertices = {
+		// Position         // Color
+		{ { +0.0f, -0.5f }, { +1.0f, +0.0f, +0.0f } },
+		{ { +0.5f, +0.5f }, { +0.0f, +1.0f, +0.0f } },
+		{ { -0.5f, +0.5f }, { +0.0f, +0.0f, +1.0f } },
+	};
+	VkBuffer vertex_buffer;
+	VkDeviceMemory vertex_buffer_memory;
 
 	static void _frame_buffer_resize_callback(GLFWwindow* window, int width, int height);
 
@@ -160,4 +204,6 @@ private:
 	void _draw_frame();
 	void _recreate_swap_chain();
 	void _clean_up_swap_chain();
+	void _create_vertex_buffer();
+	uint32_t _find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
 };
