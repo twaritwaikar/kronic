@@ -34,7 +34,7 @@ jobs:
         cmake --build . --target kronic kronic_tests --config Debug -j2
 
     - name: Test
-      run: ./build/bin/Debug/tests/kronic_tests
+      run: ./build/bin/kronic_tests
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
@@ -42,7 +42,7 @@ jobs:
         name: kronic-ubuntu-${{ github.sha }}
         if-no-files-found: error
         path: |
-          ./build/bin/Debug/kronic
+          ./build/bin/kronic
 
   windows:
     runs-on: "windows-latest"
@@ -80,7 +80,7 @@ jobs:
         cmake --build . --target kronic kronic_tests --config Release -j2
 
     - name: Test
-      run: ./build/bin/Release/tests/kronic_tests.exe
+      run: ./build/bin/Release/kronic_tests.exe
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
