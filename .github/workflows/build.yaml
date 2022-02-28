@@ -11,6 +11,14 @@ jobs:
       with:
         submodules: true
 
+    - name: Create build cache 
+      uses: actions/cache@v1
+      with:
+        path: build/
+        key: ${{ runner.OS }}-kronic-build-cache-${{ hashFiles('build/CMakeCache.txt') }}
+        restore-keys: |
+          ${{ runner.OS }}-kronic-build-cache-
+
     - name: Install Vulkan SDK
       uses: humbletim/install-vulkan-sdk@v1.1.1
       with:
@@ -24,8 +32,9 @@ jobs:
 
     - name: Configure CMake cache
       run: |
-        mkdir build
+        mkdir -p build
         cd build
+        rm -f CMakeCache.txt
         cmake .. -DBUILD_TESTS=ON
 
     - name: Build
@@ -54,6 +63,14 @@ jobs:
       with:
         submodules: true
 
+    - name: Create build cache 
+      uses: actions/cache@v1
+      with:
+        path: build/
+        key: ${{ runner.OS }}-kronic-build-cache-${{ github.ref }}
+        restore-keys: |
+          ${{ runner.OS }}-kronic-build-cache-
+
     - name: Install Vulkan SDK
       run: |
           $ver = (Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/latest.json" | ConvertFrom-Json).windows
@@ -61,12 +78,13 @@ jobs:
           $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$ver/windows/VulkanSDK-$ver-Installer.exe" -OutFile VulkanSDK.exe
           echo Downloaded
-          .\VulkanSDK.exe --root C:\VulkanSDK  --accept-licenses --default-answer --confirm-command install
+          .\VulkanSDK.exe --root C:\VulkanSDK --accept-licenses --default-answer --confirm-command install
 
     - name: Configure CMake cache
       run: |
-        mkdir build
+        test -d build || mkdir build
         cd build
+        rm -Force CMakeCache.txt
         cmake .. -DBUILD_TESTS=ON
 
     # TODO: Fix this.
