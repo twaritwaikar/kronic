@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "core/common.h"
+#include "core/log.h"
 #include "app.h"
 
 int main()

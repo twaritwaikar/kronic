@@ -628,8 +628,8 @@ void HelloTriangleApplication::_create_image_views()
 
 void HelloTriangleApplication::_create_graphics_pipeline()
 {
-	VkShaderModule vert_shader_module = _compile_shader("engine/shaders/shader.vert", ShaderType::Vertex);
-	VkShaderModule frag_shader_module = _compile_shader("engine/shaders/shader.frag", ShaderType::Fragment);
+	VkShaderModule vert_shader_module = _compile_shader("assets/shaders/shader.vert", ShaderType::Vertex);
+	VkShaderModule frag_shader_module = _compile_shader("assets/shaders/shader.frag", ShaderType::Fragment);
 
 	VkPipelineShaderStageCreateInfo vert_shader_stage_info {};
 	vert_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
