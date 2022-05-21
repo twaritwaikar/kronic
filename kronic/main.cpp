@@ -1,19 +1,23 @@
 #include <stdexcept>
 
 #include "core/log.h"
-#include "app.h"
+#include "kronic_app.h"
+
+#include "platform/glfw_window.h"
 
 int main()
 {
-	HelloTriangleApplication app;
+	GLFWWindow glfw_window;
+
+	KronicApplication app(glfw_window);
 
 	try
 	{
 		app.run();
 	}
-	catch (const std::exception* e)
+	catch (const std::exception& e)
 	{
-		Log::error(e->what());
+		Log::error(e.what());
 		return 1;
 	}
 

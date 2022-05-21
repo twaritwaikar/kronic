@@ -2,4 +2,4 @@ add_library(core
     log.cpp
 )
 
-target_link_libraries(core vendor)
+target_link_libraries(core spdlog glm)

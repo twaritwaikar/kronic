@@ -1,5 +1,8 @@
 add_executable(kronic 
     main.cpp
+    kronic_app.cpp
 )
 
-target_link_libraries(kronic PRIVATE kronic_engine)
+add_subdirectory(platform)
+
+target_link_libraries(kronic PUBLIC kronic_engine platform)

@@ -17,6 +17,7 @@ project(
     DESCRIPTION "FPS engine"
 )
 
+add_subdirectory(vendor)
 add_subdirectory(engine)
 add_subdirectory(kronic)
 
