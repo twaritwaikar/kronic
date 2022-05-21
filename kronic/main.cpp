@@ -7,7 +7,7 @@
 
 int main()
 {
-	WindowGLFW glfw_window;
+	WindowGLFW glfw_window(100, 100);
 
 	KronicApplication app(glfw_window);
 

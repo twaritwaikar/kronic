@@ -5,5 +5,6 @@ target_include_directories(kronic_engine PUBLIC ./)
 
 add_subdirectory(app)
 add_subdirectory(core)
+add_subdirectory(platform)
 
-target_link_libraries(kronic_engine PUBLIC app core)
+target_link_libraries(kronic_engine PUBLIC app core platform)

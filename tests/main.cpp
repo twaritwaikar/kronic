@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "test.maths.h"
+#include "test_headless.h"
+#include "test_utils.h"
 
 int main()
 {
