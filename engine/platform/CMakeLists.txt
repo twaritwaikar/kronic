@@ -15,4 +15,4 @@ add_library(platform
     window_none.cpp
 )
 
-target_link_libraries(platform PUBLIC glfw kronic_engine)
+target_link_libraries(platform PUBLIC glfw vulkan kronic_engine)
