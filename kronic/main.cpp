@@ -3,11 +3,11 @@
 #include "core/log.h"
 #include "kronic_app.h"
 
-#include "platform/glfw_window.h"
+#include "platform/window_glfw.h"
 
 int main()
 {
-	GLFWWindow glfw_window;
+	WindowGLFW glfw_window;
 
 	KronicApplication app(glfw_window);
 
