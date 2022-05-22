@@ -18,14 +18,15 @@ jobs:
 
     - name: Create build cache 
       uses: actions/cache@v3
+      id: build-cache
       with:
         path: |
           vulkan/
           build/
-        key: ${{ runner.OS }}-${SDK_VERSION}
+        key: ${{ runner.OS }}-${{ env.SDK_VERSION }}
 
     - name: Install Vulkan SDK
-      if: steps.cache.outputs.cache-hit != 'true'
+      if: steps.build-cache.outputs.cache-hit != 'true'
       run: |
         curl -O https://sdk.lunarg.com/sdk/download/${SDK_VERSION}/linux/vulkan_sdk.tar.gz
         mkdir -p vulkan/
@@ -70,13 +71,19 @@ jobs:
       with:
         submodules: true
 
+    - name: Get Vulkan Version
+      run: |
+        $env:SDK_VERSION = (curl https://vulkan.lunarg.com/sdk/latest/windows.txt)
+        echo "SDK_VERSION=$env:SDK_VERSION" >> $env:GITHUB_ENV
+
     - name: Create build cache 
-      uses: actions/cache@v1
+      uses: actions/cache@v3
+      id: build-cache
       with:
-        path: build/
-        key: ${{ runner.OS }}-kronic-build-cache-${{ github.ref }}
-        restore-keys: |
-          ${{ runner.OS }}-kronic-build-cache-
+        path: |
+          vulkan/
+          build/
+        key: ${{ runner.OS }}-${{ env.SDK_VERSION }}
 
     - name: Install Vulkan SDK
       run: |
@@ -85,7 +92,8 @@ jobs:
           $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$ver/windows/VulkanSDK-$ver-Installer.exe" -OutFile VulkanSDK.exe
           echo Downloaded
-          .\VulkanSDK.exe --root C:\VulkanSDK --accept-licenses --default-answer --confirm-command install
+          $location = -join((Get-Location), "/vulkan")
+          .\VulkanSDK.exe --root $location --accept-licenses --default-answer --confirm-command install
 
     - name: Configure CMake cache
       run: |

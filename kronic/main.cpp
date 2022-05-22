@@ -1,14 +1,14 @@
 #include <stdexcept>
 
+#include "common.h"
 #include "core/log.h"
-#include "kronic_app.h"
-
 #include "platform/window_glfw.h"
+
+#include "kronic_app.h"
 
 int main()
 {
-	WindowGLFW glfw_window(100, 100);
-
+	Ref<WindowGLFW> glfw_window = MakeRef<WindowGLFW>(100, 100);
 	KronicApplication app(glfw_window);
 
 	try

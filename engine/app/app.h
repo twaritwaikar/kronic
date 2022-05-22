@@ -1,15 +1,17 @@
 #pragma once
 
+#include "common.h"
+
 class Window;
 
 class Application
 {
 public:
-	Application(Window& app_window);
+	Application(Ref<Window> app_window);
 	virtual ~Application();
 
 	void run();
 
 private:
-	Window& window;
+	Ref<Window> window;
 };

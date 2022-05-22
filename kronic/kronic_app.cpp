@@ -1,6 +1,6 @@
 #include "kronic_app.h"
 
-KronicApplication::KronicApplication(Window& window)
+KronicApplication::KronicApplication(Ref<Window> window)
     : Application(window)
 {
 }

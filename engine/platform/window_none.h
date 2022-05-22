@@ -5,8 +5,8 @@
 class WindowNone : public Window
 {
 public:
-	WindowNone();
-	~WindowNone();
+	WindowNone() = default;
+	~WindowNone() = default;
 
 	int32_t get_height() const override { return height; };
 	int32_t get_width() const override { return width; };

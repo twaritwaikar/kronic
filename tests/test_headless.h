@@ -8,8 +8,8 @@
 class HeadlessTestApplication : public Application
 {
 public:
-	HeadlessTestApplication(WindowNone& window)
-	    : Application(window) {};
+	HeadlessTestApplication()
+	    : Application(MakeRef<WindowNone>()) {};
 	~HeadlessTestApplication() = default;
 };
 
@@ -20,5 +20,5 @@ TEST(Headless, WindowNone)
 
 TEST(Headless, HeadlessApplication)
 {
-	ASSERT_NO_THROW(HeadlessTestApplication(WindowNone()));
+	ASSERT_NO_THROW(HeadlessTestApplication());
 }
