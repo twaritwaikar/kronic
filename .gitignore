@@ -33,3 +33,6 @@
 
 # CMake cache
 build/
+
+# Vulkan Directory
+/vulkan/
