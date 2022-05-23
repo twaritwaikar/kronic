@@ -14,6 +14,9 @@ public:
 	void set_height(int32_t height) override;
 	void set_width(int32_t width) override;
 
+	bool has_closed() const override;
+	void collect_events() const override;
+
 private:
-	GLFWwindow* glfw_window;
+	GLFWwindow* glfw_window = nullptr;
 };

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <memory>
 
+#include <memory>
 template <class T>
 using Ref = std::shared_ptr<T>;
 
@@ -13,5 +13,16 @@ Ref<T> MakeRef(Args&&... args)
 }
 
 #include <stdexcept>
-
 using Exception = std::exception;
+
+#include <vector>
+template <class T>
+using Vector = std::vector<T>;
+
+#include <map>
+template <class P, class Q>
+using Map = std::map<P, Q>;
+
+#include <unordered_map>
+template <class P, class Q>
+using HashMap = std::unordered_map<P, Q>;

@@ -84,6 +84,7 @@ jobs:
         key: ${{ runner.OS }}-${{ env.SDK_VERSION }}
 
     - name: Install Vulkan SDK
+      if: steps.build-cache.outputs.cache-hit != 'true'
       run: |
           $ver = (Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/latest.json" | ConvertFrom-Json).windows
           echo Version $ver
@@ -92,10 +93,10 @@ jobs:
           echo Downloaded
           $location = -join((Get-Location), "/vulkan")
           .\VulkanSDK.exe --root $location --accept-licenses --default-answer --confirm-command install
-          echo "VULKAN_SDK=$location" >> $env:GITHUB_ENV
 
     - name: Configure CMake cache
       run: |
+        $env:VULKAN_SDK = -join((Get-Location), "/vulkan")
         test -d build || mkdir build
         cd build
         rm CMakeCache.txt -ErrorAction Ignore

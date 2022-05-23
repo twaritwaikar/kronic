@@ -1,17 +1,15 @@
 #include "common.h"
 #include "core/log.h"
-#include "platform/window_glfw.h"
 
 #include "kronic_app.h"
 
 int main()
 {
-	Ref<WindowGLFW> glfw_window = MakeRef<WindowGLFW>(100, 100);
-	KronicApplication app(glfw_window);
+	Ref<KronicApplication> app = MakeRef<KronicApplication>();
 
 	try
 	{
-		app.run();
+		app->run();
 	}
 	catch (const Exception& e)
 	{

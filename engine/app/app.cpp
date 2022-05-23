@@ -15,4 +15,8 @@ Application::~Application()
 
 void Application::run()
 {
+	while (!window->has_closed())
+	{
+		window->collect_events();
+	}
 }
