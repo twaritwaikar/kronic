@@ -1,6 +1,6 @@
 #include "window_glfw.h"
 
-#include "core/log.h"
+#include "vulkan/vulkan_renderer.h"
 
 class GLFWContext
 {
@@ -30,6 +30,7 @@ WindowGLFW::WindowGLFW(int32_t width, int32_t height)
 {
 	static GLFWContext glfw_context;
 
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfw_window = glfwCreateWindow(width, height, "Kronic", nullptr, nullptr);
 	if (!glfw_window)
 	{
@@ -78,4 +79,15 @@ bool WindowGLFW::has_closed() const
 void WindowGLFW::collect_events() const
 {
 	glfwPollEvents();
+}
+
+VkSurfaceKHR WindowGLFW::get_surface(VulkanRenderer* renderer) const
+{
+	VkSurfaceKHR surface;
+	VkResult err = glfwCreateWindowSurface(renderer->get_instance(), glfw_window, nullptr, &surface);
+	if (err)
+	{
+		Log::error("Could not create VkSurfaceKHR surface");
+	}
+	return surface;
 }

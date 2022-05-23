@@ -1,16 +1,11 @@
 #include "app.h"
 
-#include "window.h"
-#include "core/log.h"
+#include "app/window.h"
 
-Application::Application(Ref<Window> app_window)
-    : window(app_window)
+void Application::set_window_renderer(Ref<Window> app_window, Ref<Renderer> app_renderer)
 {
-	Log::info("Window Size: {}x{}", window->get_width(), window->get_height());
-}
-
-Application::~Application()
-{
+	window = app_window;
+	renderer = app_renderer;
 }
 
 void Application::run()

@@ -10,3 +10,6 @@
 [submodule "engine/vendor/glfw/glfw"]
 	path = vendor/glfw/glfw
 	url = https://github.com/glfw/glfw
+[submodule "vendor/vk-bootstrap/vk-bootstrap"]
+	path = vendor/vk-bootstrap/vk-bootstrap
+	url = https://github.com/charles-lunarg/vk-bootstrap

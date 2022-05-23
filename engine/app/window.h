@@ -5,8 +5,8 @@
 class Window
 {
 public:
-	Window();
-	virtual ~Window();
+	Window() = default;
+	virtual ~Window() = default;
 
 	virtual int32_t get_width() const = 0;
 	virtual int32_t get_height() const = 0;

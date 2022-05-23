@@ -1,10 +1,16 @@
 #include "kronic_app.h"
 
-#include "platform/window_glfw.h"
+#include "backends/window_glfw.h"
+#include "backends/vulkan/vulkan_renderer.h"
 
 KronicApplication::KronicApplication()
-    : Application(MakeRef<WindowGLFW>(640, 480))
 {
+	Ref<WindowGLFW> glfw_window = MakeRef<WindowGLFW>(100, 100);
+
+	Ref<VulkanRenderer> vulkan_renderer = MakeRef<VulkanRenderer>();
+	vulkan_renderer->link_to_window(glfw_window.get());
+
+	set_window_renderer(glfw_window, vulkan_renderer);
 }
 
 KronicApplication::~KronicApplication()

@@ -1,5 +1,4 @@
 #include "common.h"
-#include "core/log.h"
 
 #include "kronic_app.h"
 

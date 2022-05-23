@@ -1,5 +1,7 @@
-add_library(core
-    log.cpp
-)
+add_library(core ../stub.cpp)
 
-target_link_libraries(core spdlog glm)
+add_subdirectory(log)
+add_subdirectory(math)
+add_subdirectory(renderer)
+
+target_link_libraries(core renderer math log)

@@ -10,6 +10,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    add_compile_definitions(DEBUG=1)
+else()
+    add_compile_definitions(NDEBUG=1)
+endif()
+
 project(
     kronic
     LANGUAGES CXX

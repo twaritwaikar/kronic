@@ -1,3 +1,5 @@
+add_subdirectory(vulkan)
+
 if(WIN32)
     add_subdirectory(windows)
 endif()
@@ -10,9 +12,9 @@ if(APPLE)
     add_subdirectory(mac)
 endif()
 
-add_library(platform
+add_library(backends
     window_glfw.cpp
     window_none.cpp
 )
 
-target_link_libraries(platform PUBLIC glfw vulkan kronic_engine)
+target_link_libraries(backends PUBLIC glfw vulkan_renderer kronic_engine)

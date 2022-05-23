@@ -1,7 +1,9 @@
-#define GLFW_INCLUDE_VULKAN
-#include "GLFW/glfw3.h"
+#pragma once
 
 #include "app/window.h"
+#include "backends/vulkan/vulkan_renderer.h"
+
+#include "GLFW/glfw3.h"
 
 class WindowGLFW : public Window
 {
@@ -16,6 +18,8 @@ public:
 
 	bool has_closed() const override;
 	void collect_events() const override;
+
+	VkSurfaceKHR get_surface(VulkanRenderer* renderer) const;
 
 private:
 	GLFWwindow* glfw_window = nullptr;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/log/log.h"
+
 #include <stdint.h>
 
 #include <memory>
@@ -26,3 +28,6 @@ using Map = std::map<P, Q>;
 #include <unordered_map>
 template <class P, class Q>
 using HashMap = std::unordered_map<P, Q>;
+
+#include <string>
+using String = std::string;
