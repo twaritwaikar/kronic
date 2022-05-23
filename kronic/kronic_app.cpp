@@ -1,7 +1,9 @@
 #include "kronic_app.h"
 
-KronicApplication::KronicApplication(Ref<Window> window)
-    : Application(window)
+#include "platform/window_glfw.h"
+
+KronicApplication::KronicApplication()
+    : Application(MakeRef<WindowGLFW>(640, 480))
 {
 }
 

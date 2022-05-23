@@ -5,6 +5,6 @@
 class KronicApplication : public Application
 {
 public:
-	KronicApplication(Ref<Window> window);
+	KronicApplication();
 	~KronicApplication();
 };

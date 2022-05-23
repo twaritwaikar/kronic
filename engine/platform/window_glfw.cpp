@@ -39,7 +39,7 @@ WindowGLFW::WindowGLFW(int32_t width, int32_t height)
 
 WindowGLFW::~WindowGLFW()
 {
-	glfwTerminate();
+	glfwDestroyWindow(glfw_window);
 }
 
 int32_t WindowGLFW::get_height() const
@@ -68,4 +68,14 @@ void WindowGLFW::set_width(int32_t width)
 void WindowGLFW::set_height(int32_t height)
 {
 	glfwSetWindowSize(glfw_window, get_width(), height);
+}
+
+bool WindowGLFW::has_closed() const
+{
+	return glfwWindowShouldClose(glfw_window);
+}
+
+void WindowGLFW::collect_events() const
+{
+	glfwPollEvents();
 }
