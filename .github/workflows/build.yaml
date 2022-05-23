@@ -63,8 +63,6 @@ jobs:
 
   windows:
     runs-on: "windows-latest"
-    env:
-      VULKAN_SDK: C:\VulkanSDK\
 
     steps:
     - uses: actions/checkout@v2
@@ -94,6 +92,7 @@ jobs:
           echo Downloaded
           $location = -join((Get-Location), "/vulkan")
           .\VulkanSDK.exe --root $location --accept-licenses --default-answer --confirm-command install
+          echo "VULKAN_SDK=$location" >> $env:GITHUB_ENV
 
     - name: Configure CMake cache
       run: |

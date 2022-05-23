@@ -1,5 +1,3 @@
-#include <stdexcept>
-
 #include "common.h"
 #include "core/log.h"
 #include "platform/window_glfw.h"
@@ -15,7 +13,7 @@ int main()
 	{
 		app.run();
 	}
-	catch (const std::exception& e)
+	catch (const Exception& e)
 	{
 		Log::error(e.what());
 		return 1;
