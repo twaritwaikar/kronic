@@ -58,4 +58,9 @@ struct Log
 		OS::get_singleton()->post_error_message("Kritical Error", error_msg);
 		OS::get_singleton()->crash();
 	}
+
+	static void enable_debug_logs()
+	{
+		spdlog::set_level(spdlog::level::debug);
+	}
 };

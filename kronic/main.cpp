@@ -13,7 +13,7 @@ int main()
 	}
 	catch (const Exception& e)
 	{
-		Log::error(e.what());
+		Log::critical(e.what());
 		return 1;
 	}
 

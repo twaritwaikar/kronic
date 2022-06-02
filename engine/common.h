@@ -57,3 +57,7 @@ using Optional = std::optional<T>;
 
 #include <sstream>
 using OStringStream = std::ostringstream;
+
+#include <functional>
+template <class T>
+using Function = std::function<T>;
