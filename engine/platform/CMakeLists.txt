@@ -15,6 +15,6 @@ if(APPLE)
     set(os_library_name mac)
 endif()
 
-add_library(platform "window_glfw.cpp" "window_none.cpp" "linux/os.cpp")
+add_library(platform "window_glfw.cpp" "window_none.cpp")
 
 target_link_libraries(platform PUBLIC glfw vulkan kronic_engine ${os_library_name})

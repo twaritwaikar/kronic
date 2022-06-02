@@ -21,8 +21,23 @@ Ref<T> MakeRef(Args&&... args)
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
-#include <stdexcept>
-using Exception = std::exception;
+#include <string>
+using String = std::string;
+
+#include <exception>
+class Exception : public std::exception
+{
+public:
+	Exception(const char* exception_msg)
+	    : msg(exception_msg)
+	{
+	}
+
+	const char* what() const noexcept override { return msg.c_str(); }
+
+private:
+	String msg;
+};
 
 #include <vector>
 template <class T>
@@ -35,9 +50,6 @@ using Map = std::map<P, Q>;
 #include <unordered_map>
 template <class P, class Q>
 using HashMap = std::unordered_map<P, Q>;
-
-#include <string>
-using String = std::string;
 
 #include <optional>
 template <class T>
