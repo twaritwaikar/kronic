@@ -15,7 +15,7 @@ public:
 
 	virtual void post_error_message(const String& title, const String& error_msg) = 0;
 
-	void crash() { throw Exception("Kronic has crashed", 69); }
+	void crash() { throw Exception("Kronic has crashed"); }
 
 private:
 	static Ptr<OS> singleton;
