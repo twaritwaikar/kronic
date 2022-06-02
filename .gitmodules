@@ -1,15 +1,15 @@
-[submodule "tests/vendor/googletest"]
+[submodule "vendor/googletest/googletest"]
 	path = vendor/googletest/googletest
-	url = git@github.com:google/googletest.git
-[submodule "engine/vendor/spdlog/spdlog"]
+	url = https://github.com/google/googletest
+[submodule "vendor/spdlog/spdlog"]
 	path = vendor/spdlog/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "engine/vendor/glm/glm"]
+[submodule "vendor/glm/glm"]
 	path = vendor/glm/glm
 	url = https://github.com/g-truc/glm
-[submodule "engine/vendor/glfw/glfw"]
+[submodule "vendor/glfw/glfw"]
 	path = vendor/glfw/glfw
 	url = https://github.com/glfw/glfw
-[submodule ".\\vendor\\yaml-cpp/yaml-cpp"]
-	path = .\\vendor\\yaml-cpp/yaml-cpp
+[submodule "vendor/yaml-cpp/yaml-cpp"]
+	path = vendor/yaml-cpp/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
