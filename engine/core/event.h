@@ -21,10 +21,14 @@ struct Event
 {
 	struct Window
 	{
-		struct Resized : public BaseEvent<Resized>
+		struct Resizing : public BaseEvent<Resizing>
 		{
 			uint32_t width;
 			uint32_t height;
+		};
+
+		struct Closing : public BaseEvent<Closing>
+		{
 		};
 	};
 };

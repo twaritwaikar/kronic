@@ -18,12 +18,10 @@ public:
 	void run() override;
 
 private:
-	void handle_resize(const Event::Window::Resized& e);
-
+	Konfig konfig;
 	Ptr<Window> window;
 	// Ptr<Renderer> renderer;
 
-	Konfig konfig;
-
-	EventLink<KronicApplication, Event::Window::Resized> event_resize = { this, &KronicApplication::handle_resize };
+	void handle_resize(const Event::Window::Resizing& e);
+	EventLink<KronicApplication, Event::Window::Resizing> event_resize = { this, &KronicApplication::handle_resize };
 };

@@ -15,20 +15,21 @@ KronicApplication::KronicApplication()
 KronicApplication::~KronicApplication()
 {
 	Log::info("Kronic application is ending");
+	Event::Window::Closing::propagate({});
 }
 
 void KronicApplication::run()
 {
-	Event::Window::Resized event = { {}, 100, 100 };
+	Event::Window::Resizing event = { {}, 100, 100 };
 	while (!window->has_closed())
 	{
-		Event::Window::Resized::propagate(event);
+		Event::Window::Resizing::propagate(event);
 
 		window->collect_events();
 	}
 }
 
-void KronicApplication::handle_resize(const Event::Window::Resized& e)
+void KronicApplication::handle_resize(const Event::Window::Resizing& e)
 {
 	Log::debug("New size: {}x{}", e.width, e.height);
 }
