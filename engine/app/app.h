@@ -2,16 +2,11 @@
 
 #include "common.h"
 
-class Window;
-
 class Application
 {
 public:
-	Application(Ref<Window> app_window);
-	virtual ~Application();
+	Application();
+	virtual ~Application() = default;
 
-	void run();
-
-private:
-	Ref<Window> window;
+	virtual void run() = 0;
 };

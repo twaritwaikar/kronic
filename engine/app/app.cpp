@@ -1,22 +1,12 @@
 #include "app.h"
 
-#include "window.h"
 #include "core/log.h"
+#include "os/file_system.h"
 
-Application::Application(Ref<Window> app_window)
-    : window(app_window)
+Application::Application()
 {
-	Log::info("Window Size: {}x{}", window->get_width(), window->get_height());
-}
+	FileSystem::set_current_directory_to_root_file("kronic.root");
+	Log::info("Current directory: {}", FileSystem::get_current_directory());
 
-Application::~Application()
-{
-}
-
-void Application::run()
-{
-	while (!window->has_closed())
-	{
-		window->collect_events();
-	}
+	Log::critical("Oh no! {}", 5);
 }

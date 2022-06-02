@@ -36,3 +36,7 @@ build/
 
 # Vulkan Directory
 /vulkan/
+
+# IDE specific folders
+.vscode/
+.vs/

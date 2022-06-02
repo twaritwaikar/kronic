@@ -10,3 +10,6 @@
 [submodule "engine/vendor/glfw/glfw"]
 	path = vendor/glfw/glfw
 	url = https://github.com/glfw/glfw
+[submodule ".\\vendor\\yaml-cpp/yaml-cpp"]
+	path = .\\vendor\\yaml-cpp/yaml-cpp
+	url = git@github.com:jbeder/yaml-cpp.git

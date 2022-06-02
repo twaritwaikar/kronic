@@ -4,6 +4,15 @@
 
 #include <memory>
 template <class T>
+using Ptr = std::unique_ptr<T>;
+
+template <typename T, typename... Args>
+Ptr<T> MakeUnique(Args&&... args)
+{
+	return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+template <class T>
 using Ref = std::shared_ptr<T>;
 
 template <typename T, typename... Args>
@@ -26,3 +35,13 @@ using Map = std::map<P, Q>;
 #include <unordered_map>
 template <class P, class Q>
 using HashMap = std::unordered_map<P, Q>;
+
+#include <string>
+using String = std::string;
+
+#include <optional>
+template <class T>
+using Optional = std::optional<T>;
+
+#include <sstream>
+using OStringStream = std::ostringstream;

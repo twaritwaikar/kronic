@@ -9,8 +9,10 @@ class HeadlessTestApplication : public Application
 {
 public:
 	HeadlessTestApplication()
-	    : Application(MakeRef<WindowNone>()) {};
+	    : Application() {};
 	~HeadlessTestApplication() = default;
+
+	void run() override { }
 };
 
 TEST(Headless, WindowNone)
