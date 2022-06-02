@@ -11,13 +11,15 @@ struct Konfig
 	{
 		Vulkan,
 		None
-	} rendering_api = RenderingAPI::None;
+	};
+	RenderingAPI rendering_api = RenderingAPI::None;
 
 	enum class WindowingAPI
 	{
 		GLFW,
 		None
-	} windowing_api = WindowingAPI::None;
+	};
+	WindowingAPI windowing_api = WindowingAPI::None;
 
 	FileYAML config_file;
 };

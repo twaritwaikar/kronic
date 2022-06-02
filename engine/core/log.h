@@ -36,15 +36,16 @@ struct Log
 
 	// https://github.com/gabime/spdlog/blob/f5492aed12b144df73faf8ae336b3dbc39ebbc38/tests/test_pattern_formatter.cpp#L7
 	template <typename... Args>
-	static std::string log_to_str(const std::string& msg, const Args&... args)
+	static std::string log_to_str(Args... args)
 	{
 		std::ostringstream oss;
 		auto oss_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(oss);
 		spdlog::logger oss_logger("pattern_tester", oss_sink);
 
-		oss_logger.set_formatter(std::unique_ptr<spdlog::formatter>(new spdlog::pattern_formatter("%v", spdlog::pattern_time_type::local, "\n")));
+		oss_logger.set_level(spdlog::level::critical);
+		oss_logger.set_formatter(MakeUnique<spdlog::pattern_formatter>("%v", spdlog::pattern_time_type::local));
 
-		oss_logger.info(msg);
+		oss_logger.critical(std::forward<Args>(args)...);
 		return oss.str();
 	}
 

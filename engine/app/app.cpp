@@ -7,6 +7,4 @@ Application::Application()
 {
 	FileSystem::set_current_directory_to_root_file("kronic.root");
 	Log::info("Current directory: {}", FileSystem::get_current_directory());
-
-	Log::critical("Oh no! {}", 5);
 }
