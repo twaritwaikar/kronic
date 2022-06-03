@@ -20,7 +20,7 @@ public:
 private:
 	Konfig konfig;
 	Ptr<Window> window;
-	// Ptr<Renderer> renderer;
+	Ptr<Renderer> renderer;
 
 	void handle_resize(const Event::Window::Resizing& e);
 	EventLink<KronicApplication, Event::Window::Resizing> event_resize = { this, &KronicApplication::handle_resize };

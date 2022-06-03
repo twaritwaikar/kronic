@@ -27,7 +27,7 @@ public:
 	}
 };
 
-WindowGLFW::WindowGLFW(int32_t width, int32_t height)
+WindowGLFW::WindowGLFW(uint32_t width, uint32_t height)
 {
 	static GLFWContext glfw_context;
 
@@ -43,30 +43,28 @@ WindowGLFW::~WindowGLFW()
 	glfwDestroyWindow(glfw_window);
 }
 
-int32_t WindowGLFW::get_height() const
+uint32_t WindowGLFW::get_height() const
 {
-	int32_t height = -1;
-
+	int32_t height = 0;
 	glfwGetWindowSize(glfw_window, nullptr, &height);
 
 	return height;
 }
 
-int32_t WindowGLFW::get_width() const
+uint32_t WindowGLFW::get_width() const
 {
-	int32_t width = -1;
-
+	int32_t width = 0;
 	glfwGetWindowSize(glfw_window, &width, nullptr);
 
 	return width;
 }
 
-void WindowGLFW::set_width(int32_t width)
+void WindowGLFW::set_width(uint32_t width)
 {
 	glfwSetWindowSize(glfw_window, width, get_height());
 }
 
-void WindowGLFW::set_height(int32_t height)
+void WindowGLFW::set_height(uint32_t height)
 {
 	glfwSetWindowSize(glfw_window, get_width(), height);
 }

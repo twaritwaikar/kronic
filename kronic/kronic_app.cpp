@@ -1,14 +1,21 @@
 #include "kronic_app.h"
 
 #include "core/log.h"
+#include "platform/vulkan/vulkan_renderer.h"
 #include "platform/window_glfw.h"
 
 KronicApplication::KronicApplication()
 {
 	if (konfig.windowing_api == Konfig::WindowingAPI::GLFW)
 	{
-		window = MakeUnique<WindowGLFW>(640, 480); // Windows dimensions should technically be in user konfigs
+		window = MakeUnique<WindowGLFW>(640, 480); // TODO: Should be in user konfig
 		Log::info("Created a {}x{} GLFW window", window->get_width(), window->get_height());
+	}
+
+	if (konfig.rendering_api == Konfig::RenderingAPI::Vulkan)
+	{
+		renderer = MakeUnique<VulkanRenderer>(static_cast<WindowGLFW*>(window.get())); // TODO: Should be in user konfig
+		Log::info("Created Vulkan renderer");
 	}
 }
 
