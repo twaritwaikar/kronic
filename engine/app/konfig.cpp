@@ -15,7 +15,7 @@ Konfig::Konfig()
 	}
 	else
 	{
-		Log::error("Found unknown rendering API: {}", rendering_api_str);
+		ERR("Found unknown rendering API: {}", rendering_api_str);
 	}
 
 	if (windowing_api_str == "GLFW")
@@ -24,7 +24,8 @@ Konfig::Konfig()
 	}
 	else
 	{
-		Log::error("Found unknown windowing API: {}", windowing_api_str);
+		ERR("Found unknown windowing API: {}", windowing_api_str);
 	}
-	Log::debug("Loaded konfig file from {}", config_file.path);
+
+	INFO("Loaded konfig file from {}", config_file.path);
 }

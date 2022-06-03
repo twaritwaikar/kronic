@@ -21,7 +21,7 @@ Optional<FileYAML> FileSystem::read_yaml(const String& path)
 	}
 	catch (const Exception* e)
 	{
-		Log::error("Could not load YAML file from {}. {}", path, e->what());
+		ERR("Could not load YAML file from {}. {}", path, e->what());
 	}
 	return {};
 }
@@ -44,7 +44,7 @@ void FileSystem::set_current_directory_to_root_file(const String& root_file_name
 	}
 	catch (const Exception* e)
 	{
-		Log::error("Could not set current directory to {}. {}", root_file_name, e->what());
+		ERR("Could not set current directory to {}. {}", root_file_name, e->what());
 	}
 }
 

@@ -13,3 +13,6 @@
 [submodule "vendor/yaml-cpp/yaml-cpp"]
 	path = vendor/yaml-cpp/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+[submodule "vendor/vk-bootstrap/vk-bootstrap"]
+	path = vendor/vk-bootstrap/vk-bootstrap
+	url = git@github.com:charles-lunarg/vk-bootstrap.git

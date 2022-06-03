@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "app/app.h"
-#include "platform/window_none.h"
+#include "app/window_none.h"
 
 class HeadlessTestApplication : public Application
 {

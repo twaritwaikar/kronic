@@ -3,11 +3,11 @@
 
 #include "app/window.h"
 
-class WindowGLFW : public Window
+class GLFWWindow : public Window
 {
 public:
-	WindowGLFW(uint32_t width, uint32_t height);
-	~WindowGLFW();
+	GLFWWindow(uint32_t width, uint32_t height);
+	~GLFWWindow();
 
 	uint32_t get_height() const override;
 	uint32_t get_width() const override;
@@ -16,6 +16,8 @@ public:
 
 	bool has_closed() const override;
 	void collect_events() const override;
+
+	VkSurfaceKHR get_surface(VkInstance& instance) const;
 
 private:
 	GLFWwindow* glfw_window = nullptr;

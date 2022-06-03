@@ -2,26 +2,26 @@
 
 #include "core/log.h"
 #include "platform/vulkan/vulkan_renderer.h"
-#include "platform/window_glfw.h"
+#include "platform/glfw/glfw_window.h"
 
 KronicApplication::KronicApplication()
 {
 	if (konfig.windowing_api == Konfig::WindowingAPI::GLFW)
 	{
-		window = MakeUnique<WindowGLFW>(640, 480); // TODO: Should be in user konfig
-		Log::info("Created a {}x{} GLFW window", window->get_width(), window->get_height());
+		window = MakeUnique<GLFWWindow>(640, 480); // TODO: Should be in user konfig
+		INFO("Created a {}x{} GLFW window", window->get_width(), window->get_height());
 	}
 
 	if (konfig.rendering_api == Konfig::RenderingAPI::Vulkan)
 	{
-		renderer = MakeUnique<VulkanRenderer>(static_cast<WindowGLFW*>(window.get())); // TODO: Should be in user konfig
-		Log::info("Created Vulkan renderer");
+		renderer = MakeUnique<VulkanRenderer>("Kronic", static_cast<GLFWWindow*>(window.get())); // TODO: Should be in user konfig
+		INFO("Created Vulkan renderer");
 	}
 }
 
 KronicApplication::~KronicApplication()
 {
-	Log::info("Kronic application is ending");
+	INFO("Kronic application is ending");
 	Event::Window::Closing::propagate({});
 }
 
@@ -38,5 +38,5 @@ void KronicApplication::run()
 
 void KronicApplication::handle_resize(const Event::Window::Resizing& e)
 {
-	Log::debug("New size: {}x{}", e.width, e.height);
+	DEBUG("New size: {}x{}", e.width, e.height);
 }

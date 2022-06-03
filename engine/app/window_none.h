@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/window.h"
+#include "window.h"
 
 class WindowNone : public Window
 {
