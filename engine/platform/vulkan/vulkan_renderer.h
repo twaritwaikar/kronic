@@ -14,7 +14,9 @@ public:
 
 private:
 	void build_swapchain(uint32_t width, uint32_t height);
+	void build_queue_and_command_buffers();
 
+	// Context variables
 	bool is_ok = false;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debug_messenger;
@@ -22,8 +24,15 @@ private:
 	VkDevice device;
 	VkSurfaceKHR surface;
 
+	// Swapchain
 	VkSwapchainKHR swapchain;
 	VkFormat swapchain_image_format;
 	Vector<VkImage> swapchain_images;
 	Vector<VkImageView> swapchain_image_views;
+
+	// Queue handles
+	VkQueue graphics_queue;
+	uint32_t graphics_queue_family;
+	VkCommandPool graphics_queue_command_pool;
+	VkCommandBuffer graphics_queue_command_buffer;
 };

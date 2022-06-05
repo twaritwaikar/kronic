@@ -1,7 +1,10 @@
 #include "vulkan_renderer.h"
 
-#include "VkBootstrap.h"
+#include "vulkan_init_helpers.h"
+#include "core/log.h"
 #include "platform/glfw/glfw_window.h"
+
+#include "VkBootstrap.h"
 
 #define VK_CHECK(x)                      \
 	do                                   \
@@ -43,7 +46,11 @@ VulkanRenderer::VulkanRenderer(const char* app_name, const GLFWWindow* window)
 	device = vkb_device.device;
 	gpu = vkb_physical_device.physical_device;
 
+	graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
+	graphics_queue = vkb_device.get_queue(vkb::QueueType::graphics).value();
+
 	build_swapchain(window->get_width(), window->get_height());
+	build_queue_and_command_buffers();
 
 	is_ok = true;
 }
@@ -55,6 +62,7 @@ VulkanRenderer::~VulkanRenderer()
 		return;
 	}
 
+	vkDestroyCommandPool(device, graphics_queue_command_pool, nullptr);
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
 
 	for (VkImageView& v : swapchain_image_views)
@@ -82,4 +90,20 @@ void VulkanRenderer::build_swapchain(uint32_t width, uint32_t height)
 	swapchain_images = vkb_swapchain.get_images().value();
 	swapchain_image_views = vkb_swapchain.get_image_views().value();
 	swapchain_image_format = vkb_swapchain.image_format;
+}
+
+void VulkanRenderer::build_queue_and_command_buffers()
+{
+	VkCommandPoolCreateInfo cmd_pool_info = VulkanInit::command_pool_create_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+	VK_CHECK(vkCreateCommandPool(
+	    device,
+	    &cmd_pool_info,
+	    nullptr,
+	    &graphics_queue_command_pool));
+
+	VkCommandBufferAllocateInfo cmd_buffer_info = VulkanInit::command_buffer_allocate_info(graphics_queue_command_pool);
+	VK_CHECK(vkAllocateCommandBuffers(
+	    device,
+	    &cmd_buffer_info,
+	    &graphics_queue_command_buffer));
 }

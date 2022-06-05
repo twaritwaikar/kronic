@@ -59,16 +59,18 @@ struct Log
 		OS::get_singleton()->crash();
 	}
 
-	static void enable_debug_logs()
+	static void setup()
 	{
-		spdlog::set_level(spdlog::level::debug);
+#ifndef NDEBUG
+		spdlog::set_level(spdlog::level::trace);
+#endif // NDEBUG
 	}
 };
 
 #define LOG_FORMAT "{}#L{} -> "
 
-#define DEBUG(fmt, ...) Log::debug(LOG_FORMAT fmt, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define INFO(fmt, ...) Log::info(LOG_FORMAT fmt, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define ERR(fmt, ...) Log::error(LOG_FORMAT fmt, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define WARN(fmt, ...) Log::warn(LOG_FORMAT fmt, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define CRITICAL(fmt, ...) Log::critical(LOG_FORMAT fmt, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define DEBUG(fmt, ...) Log::debug(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define INFO(fmt, ...) Log::info(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define ERR(fmt, ...) Log::error(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define WARN(fmt, ...) Log::warn(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define CRITICAL(fmt, ...) Log::critical(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
