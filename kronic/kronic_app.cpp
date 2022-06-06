@@ -30,7 +30,7 @@ void KronicApplication::run()
 	Event::Window::Resizing event = { {}, 100, 100 };
 	while (!window->has_closed())
 	{
-		Event::Window::Resizing::propagate(event);
+		renderer->draw();
 
 		window->collect_events();
 	}

@@ -16,6 +16,8 @@
 		}                                \
 	} while (0)
 
+constexpr uint32_t s_to_ns = 1000000000;
+
 VulkanRenderer::VulkanRenderer(const char* app_name, const GLFWWindow* window)
 {
 	build_vulkan_contexts(app_name, window);
@@ -23,6 +25,7 @@ VulkanRenderer::VulkanRenderer(const char* app_name, const GLFWWindow* window)
 	build_queue_and_command_buffers();
 	build_default_render_pass();
 	build_framebuffers();
+	build_sync_objects();
 
 	is_ok = true;
 }
@@ -34,8 +37,14 @@ VulkanRenderer::~VulkanRenderer()
 		return;
 	}
 
+	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, 1 * s_to_ns));
+
 	vkDestroyCommandPool(device, graphics_queue_command_pool, nullptr);
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
+
+	vkDestroySemaphore(device, present_semaphore, nullptr);
+	vkDestroySemaphore(device, render_semaphore, nullptr);
+	vkDestroyFence(device, render_fence, nullptr);
 
 	vkDestroyRenderPass(device, render_pass, nullptr);
 
@@ -49,6 +58,78 @@ VulkanRenderer::~VulkanRenderer()
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkb::destroy_debug_utils_messenger(instance, debug_messenger);
 	vkDestroyInstance(instance, nullptr);
+}
+
+void VulkanRenderer::draw()
+{
+	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, 1 * s_to_ns));
+	VK_CHECK(vkResetFences(device, 1, &render_fence));
+
+	uint32_t swapchain_image_index = 0;
+	VK_CHECK(vkAcquireNextImageKHR(device, swapchain, 1 * s_to_ns, present_semaphore, nullptr, &swapchain_image_index));
+
+	VK_CHECK(vkResetCommandBuffer(graphics_queue_command_buffer, 0));
+	VkCommandBufferBeginInfo cmd_begin_info = {};
+	cmd_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cmd_begin_info.pNext = nullptr;
+
+	cmd_begin_info.pInheritanceInfo = nullptr;
+	cmd_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	VK_CHECK(vkBeginCommandBuffer(graphics_queue_command_buffer, &cmd_begin_info));
+	{
+		VkRenderPassBeginInfo render_pass_begin_info = {};
+		render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		render_pass_begin_info.pNext = nullptr;
+
+		render_pass_begin_info.renderPass = render_pass;
+		render_pass_begin_info.renderArea.offset.x = 0;
+		render_pass_begin_info.renderArea.offset.y = 0;
+		render_pass_begin_info.renderArea.extent.width = swapchain_image_width;
+		render_pass_begin_info.renderArea.extent.height = swapchain_image_height;
+		render_pass_begin_info.framebuffer = framebuffers[swapchain_image_index];
+
+		VkClearValue clear_value = {};
+		float flash = std::abs(std::sin(frame_number / 120.0f));
+		clear_value.color = { { 0.0f, 0.0f, flash, 1.0f } };
+
+		render_pass_begin_info.clearValueCount = 1;
+		render_pass_begin_info.pClearValues = &clear_value;
+
+		vkCmdBeginRenderPass(graphics_queue_command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+		{
+		}
+		vkCmdEndRenderPass(graphics_queue_command_buffer);
+	}
+	VK_CHECK(vkEndCommandBuffer(graphics_queue_command_buffer));
+
+	VkSubmitInfo submit = {};
+	submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit.pNext = nullptr;
+
+	VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	submit.pWaitDstStageMask = &wait_stage;
+	submit.waitSemaphoreCount = 1;
+	submit.pWaitSemaphores = &present_semaphore;
+	submit.signalSemaphoreCount = 1;
+	submit.pSignalSemaphores = &render_semaphore;
+	submit.commandBufferCount = 1;
+	submit.pCommandBuffers = &graphics_queue_command_buffer;
+
+	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit, render_fence));
+
+	VkPresentInfoKHR present_info = {};
+	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	present_info.pNext = nullptr;
+	present_info.pSwapchains = &swapchain;
+	present_info.swapchainCount = 1;
+	present_info.pWaitSemaphores = &render_semaphore;
+	present_info.waitSemaphoreCount = 1;
+	present_info.pImageIndices = &swapchain_image_index;
+
+	VK_CHECK(vkQueuePresentKHR(graphics_queue, &present_info));
+
+	frame_number++;
 }
 
 void VulkanRenderer::build_vulkan_contexts(const char* app_name, const GLFWWindow* window)
@@ -180,4 +261,23 @@ void VulkanRenderer::build_framebuffers()
 		fb_info.pAttachments = &swapchain_image_views[i];
 		VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffers[i]));
 	}
+}
+
+void VulkanRenderer::build_sync_objects()
+{
+	VkFenceCreateInfo fence_create_info = {};
+	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_create_info.pNext = nullptr;
+
+	fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	VK_CHECK(vkCreateFence(device, &fence_create_info, nullptr, &render_fence));
+
+	VkSemaphoreCreateInfo semaphore_create_info = {};
+	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	semaphore_create_info.pNext = nullptr;
+	semaphore_create_info.flags = 0;
+
+	VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &present_semaphore));
+	VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &render_semaphore));
 }
