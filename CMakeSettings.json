@@ -2,14 +2,36 @@
     "configurations": [
         {
             "name": "x64-Debug",
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022 Win64",
             "configurationType": "Debug",
             "inheritEnvironments": [ "msvc_x64_x64" ],
-            "buildRoot": "${projectDir}\\out\\build\\${name}",
-            "installRoot": "${projectDir}\\out\\install\\${name}",
+            "buildRoot": "${projectDir}\\build\\${name}",
+            "installRoot": "${projectDir}\\build\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": ""
+        },
+        {
+            "name": "x64-Release",
+            "generator": "Visual Studio 17 2022 Win64",
+            "configurationType": "Release",
+            "buildRoot": "${projectDir}\\build\\${name}",
+            "installRoot": "${projectDir}\\build\\install\\${name}",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "inheritEnvironments": [ "msvc_x64_x64" ]
+        },
+        {
+            "name": "x64-RelWithDebInfo",
+            "generator": "Visual Studio 17 2022 Win64",
+            "configurationType": "RelWithDebInfo",
+            "buildRoot": "${projectDir}\\build\\${name}",
+            "installRoot": "${projectDir}\\build\\install\\${name}",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "inheritEnvironments": [ "msvc_x64_x64" ]
         }
     ]
 }

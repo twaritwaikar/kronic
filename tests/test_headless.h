@@ -17,6 +17,7 @@ public:
 
 TEST(Headless, WindowNone)
 {
+	// TODO: Should use a headless window implementation that allows taking off-screen screenshots
 	ASSERT_NO_THROW(WindowNone());
 }
 

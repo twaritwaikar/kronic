@@ -1,12 +1,12 @@
 #version 450
-
-layout(location = 0) in vec2 in_position;
-layout(location = 1) in vec3 in_color;
-
-layout(location = 0) out vec3 frag_color;
+#pragma vertex
 
 void main()
 {
-	gl_Position = vec4(in_position, 0.0, 1.0);
-	frag_color = in_color;
+	const vec3 positions[3] = vec3[3](
+		vec3(1.0f, 1.0f, 0.0f),
+		vec3(-1.0f, 1.0f, 0.0f),
+		vec3(0.0f, -1.0f, 0.0f)
+	);
+	gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
 }

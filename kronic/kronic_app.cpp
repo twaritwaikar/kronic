@@ -22,12 +22,12 @@ KronicApplication::KronicApplication()
 KronicApplication::~KronicApplication()
 {
 	INFO("Kronic application is ending");
-	Event::Window::Closing::propagate({});
+	EventWindowClosing::fire({});
 }
 
 void KronicApplication::run()
 {
-	Event::Window::Resizing event = { {}, 100, 100 };
+	EventWindowResizing event = { {}, 100, 100 };
 	while (!window->has_closed())
 	{
 		renderer->draw();
@@ -36,7 +36,7 @@ void KronicApplication::run()
 	}
 }
 
-void KronicApplication::handle_resize(const Event::Window::Resizing& e)
+void KronicApplication::handle_resize(const EventWindowResizing& e)
 {
 	DEBUG("New size: {}x{}", e.width, e.height);
 }

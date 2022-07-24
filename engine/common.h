@@ -61,3 +61,6 @@ using OStringStream = std::ostringstream;
 #include <functional>
 template <class T>
 using Function = std::function<T>;
+
+#include <cstddef>
+using Byte = std::byte;

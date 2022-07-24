@@ -10,5 +10,5 @@ target_include_directories(vulkan PUBLIC ${Vulkan_INCLUDE_DIR})
 target_link_directories(vulkan PUBLIC $ENV{VULKAN_SDK}/lib)
 target_link_libraries(vulkan PRIVATE
     ${Vulkan_LIBRARY}
-    shaderc_combined
+    $<IF:$<CONFIG:Debug>,shaderc_combinedd,shaderc_combined>
 )

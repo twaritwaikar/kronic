@@ -40,7 +40,7 @@ struct Log
 	{
 		std::ostringstream oss;
 		auto oss_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(oss);
-		spdlog::logger oss_logger("pattern_tester", oss_sink);
+		spdlog::logger oss_logger("pattern", oss_sink);
 
 		oss_logger.set_level(spdlog::level::critical);
 		oss_logger.set_formatter(MakeUnique<spdlog::pattern_formatter>("%v", spdlog::pattern_time_type::local));
@@ -61,16 +61,17 @@ struct Log
 
 	static void setup()
 	{
+
 #ifndef NDEBUG
 		spdlog::set_level(spdlog::level::trace);
 #endif // NDEBUG
 	}
 };
 
-#define LOG_FORMAT "{}#L{} -> "
+#define LOG_FORMAT " \033[90m({}#L{})\033[39m"
 
-#define DEBUG(fmt, ...) Log::debug(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define INFO(fmt, ...) Log::info(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define ERR(fmt, ...) Log::error(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define WARN(fmt, ...) Log::warn(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define CRITICAL(fmt, ...) Log::critical(LOG_FORMAT fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define DEBUG(fmt, ...) Log::debug(fmt LOG_FORMAT, __VA_ARGS__, __func__, __LINE__)
+#define INFO(fmt, ...) Log::info(fmt LOG_FORMAT, __VA_ARGS__, __func__, __LINE__)
+#define ERR(fmt, ...) Log::error(fmt LOG_FORMAT, __VA_ARGS__, __func__, __LINE__)
+#define WARN(fmt, ...) Log::warn(fmt LOG_FORMAT, __VA_ARGS__, __func__, __LINE__)
+#define CRITICAL(fmt, ...) Log::critical(fmt LOG_FORMAT, __VA_ARGS__, __func__, __LINE__)

@@ -3,6 +3,7 @@
 #include "core/renderer.h"
 
 #include "vulkan/vulkan.h"
+#include "shaderc/shaderc.hpp"
 
 class GLFWWindow;
 
@@ -21,6 +22,29 @@ private:
 	void build_default_render_pass();
 	void build_framebuffers();
 	void build_sync_objects();
+
+	struct PipelineBuilder
+	{
+		Vector<VkPipelineShaderStageCreateInfo> shader_stages;
+		VkPipelineVertexInputStateCreateInfo vertex_input_info;
+		VkPipelineInputAssemblyStateCreateInfo input_assembly;
+		VkViewport viewport;
+		VkRect2D scissor;
+		VkPipelineRasterizationStateCreateInfo rasterizer;
+		VkPipelineColorBlendAttachmentState color_blend_attachment;
+		VkPipelineMultisampleStateCreateInfo multisampling;
+		VkPipelineLayout pipeline_layout;
+
+		VkPipeline build_pipeline(VkDevice device, VkRenderPass pass);
+	};
+	void build_pipelines();
+
+	enum class ShaderType
+	{
+		Vertex = shaderc_glsl_vertex_shader,
+		Fragment = shaderc_glsl_fragment_shader
+	};
+	bool load_shader(const char* file_path, ShaderType type, VkShaderModule* out_shader_module);
 
 	// Context variables
 	bool is_ok = false;
@@ -55,4 +79,8 @@ private:
 	VkSemaphore render_semaphore;
 	VkSemaphore present_semaphore;
 	VkFence render_fence;
+
+	// Pipeline vars
+	VkPipelineLayout triangle_pipeline_layout;
+	VkPipeline triangle_pipeline;
 };

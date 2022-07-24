@@ -22,6 +22,6 @@ private:
 	Ptr<Window> window;
 	Ptr<Renderer> renderer;
 
-	void handle_resize(const Event::Window::Resizing& e);
-	EventLink<KronicApplication, Event::Window::Resizing> event_resize = { this, &KronicApplication::handle_resize };
+	void handle_resize(const EventWindowResizing& e);
+	EventLink<KronicApplication, EventWindowResizing> event_resize = { this, &KronicApplication::handle_resize };
 };

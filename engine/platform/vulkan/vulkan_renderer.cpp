@@ -1,7 +1,9 @@
 #include "vulkan_renderer.h"
 
-#include "vulkan_init_helpers.h"
 #include "core/log.h"
+#include "core/math.h"
+#include "os/file_system.h"
+#include "vulkan_init_helpers.h"
 #include "platform/glfw/glfw_window.h"
 
 #include "VkBootstrap.h"
@@ -16,8 +18,6 @@
 		}                                \
 	} while (0)
 
-constexpr uint32_t s_to_ns = 1000000000;
-
 VulkanRenderer::VulkanRenderer(const char* app_name, const GLFWWindow* window)
 {
 	build_vulkan_contexts(app_name, window);
@@ -26,6 +26,7 @@ VulkanRenderer::VulkanRenderer(const char* app_name, const GLFWWindow* window)
 	build_default_render_pass();
 	build_framebuffers();
 	build_sync_objects();
+	build_pipelines();
 
 	is_ok = true;
 }
@@ -37,7 +38,7 @@ VulkanRenderer::~VulkanRenderer()
 		return;
 	}
 
-	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, 1 * s_to_ns));
+	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, uint64_t(1) * Convert::s_to_ns));
 
 	vkDestroyCommandPool(device, graphics_queue_command_pool, nullptr);
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
@@ -62,11 +63,11 @@ VulkanRenderer::~VulkanRenderer()
 
 void VulkanRenderer::draw()
 {
-	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, 1 * s_to_ns));
+	VK_CHECK(vkWaitForFences(device, 1, &render_fence, true, 1 * Convert::s_to_ns));
 	VK_CHECK(vkResetFences(device, 1, &render_fence));
 
 	uint32_t swapchain_image_index = 0;
-	VK_CHECK(vkAcquireNextImageKHR(device, swapchain, 1 * s_to_ns, present_semaphore, nullptr, &swapchain_image_index));
+	VK_CHECK(vkAcquireNextImageKHR(device, swapchain, 1 * Convert::s_to_ns, present_semaphore, nullptr, &swapchain_image_index));
 
 	VK_CHECK(vkResetCommandBuffer(graphics_queue_command_buffer, 0));
 	VkCommandBufferBeginInfo cmd_begin_info = {};
@@ -98,6 +99,8 @@ void VulkanRenderer::draw()
 
 		vkCmdBeginRenderPass(graphics_queue_command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 		{
+			vkCmdBindPipeline(graphics_queue_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
+			vkCmdDraw(graphics_queue_command_buffer, 3, 1, 0, 0);
 		}
 		vkCmdEndRenderPass(graphics_queue_command_buffer);
 	}
@@ -280,4 +283,131 @@ void VulkanRenderer::build_sync_objects()
 
 	VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &present_semaphore));
 	VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &render_semaphore));
+}
+
+void VulkanRenderer::build_pipelines()
+{
+	VkShaderModule frag_module;
+	if (!load_shader("assets/shaders/shader.frag", ShaderType::Fragment, &frag_module))
+	{
+		ERR("Could not create fragment shader: {}", "assets/shaders/shader.frag");
+	}
+
+	VkShaderModule vert_module;
+	if (!load_shader("assets/shaders/shader.vert", ShaderType::Vertex, &vert_module))
+	{
+		ERR("Could not create vertex shader: {}", "assets/shaders/shader.vert");
+	}
+
+	VkPipelineLayoutCreateInfo pipeline_layout_info = VulkanInit::pipeline_layout_create_info();
+	VK_CHECK(vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &triangle_pipeline_layout));
+
+	PipelineBuilder pipeline_builder;
+	pipeline_builder.shader_stages.push_back(VulkanInit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vert_module));
+	pipeline_builder.shader_stages.push_back(VulkanInit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, frag_module));
+
+	pipeline_builder.vertex_input_info = VulkanInit::pipeline_vertex_input_state_create_info();
+	pipeline_builder.input_assembly = VulkanInit::pipeline_input_assembly_state_create_info(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+
+	pipeline_builder.viewport.x = 0.0f;
+	pipeline_builder.viewport.y = 0.0f;
+	pipeline_builder.viewport.width = swapchain_image_width;
+	pipeline_builder.viewport.height = swapchain_image_height;
+	pipeline_builder.viewport.minDepth = 0.0f;
+	pipeline_builder.viewport.maxDepth = 1.0f;
+
+	pipeline_builder.scissor.offset = { 0, 0 };
+	pipeline_builder.scissor.extent = { swapchain_image_width, swapchain_image_height };
+
+	pipeline_builder.rasterizer = VulkanInit::pipeline_rasterization_state_create_info(VK_POLYGON_MODE_FILL);
+
+	pipeline_builder.multisampling = VulkanInit::pipeline_multisample_state_create_info();
+	pipeline_builder.color_blend_attachment = VulkanInit::color_blend_attachment_state();
+	pipeline_builder.pipeline_layout = triangle_pipeline_layout;
+
+	triangle_pipeline = pipeline_builder.build_pipeline(device, render_pass);
+}
+
+bool VulkanRenderer::load_shader(const char* file_path, ShaderType type, VkShaderModule* out_shader_module)
+{
+	Optional<File> file_data = FileSystem::read_file(file_path);
+	if (!file_data)
+	{
+		ERR("Could not load shader from: {}", file_path);
+		return {};
+	}
+
+	static shaderc::Compiler compiler;
+	shaderc::CompilationResult result = compiler.CompileGlslToSpv(file_data->contents, shaderc_shader_kind(int(type)), file_path);
+
+	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		ERR("Found {} errors and {} warnings while compiling shader {}: {}", result.GetNumWarnings(), result.GetNumErrors(), file_path, result.GetErrorMessage());
+		return {};
+	}
+
+	VkShaderModuleCreateInfo create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	create_info.pNext = nullptr;
+
+	create_info.codeSize = sizeof(uint32_t) * (result.end() - result.begin());
+	create_info.pCode = result.begin();
+
+	VkShaderModule shader_module;
+	if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS)
+	{
+		ERR("Could not load shader module from: {}", file_path);
+		return {};
+	}
+
+	*out_shader_module = shader_module;
+
+	return true;
+}
+
+VkPipeline VulkanRenderer::PipelineBuilder::build_pipeline(VkDevice device, VkRenderPass pass)
+{
+	VkPipelineViewportStateCreateInfo viewport_info {};
+	viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewport_info.pNext = nullptr;
+
+	viewport_info.viewportCount = 1;
+	viewport_info.pViewports = &viewport;
+	viewport_info.scissorCount = 1;
+	viewport_info.pScissors = &scissor;
+
+	VkPipelineColorBlendStateCreateInfo color_blending = {};
+	color_blending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	color_blending.pNext = nullptr;
+
+	color_blending.logicOpEnable = VK_FALSE;
+	color_blending.logicOp = VK_LOGIC_OP_COPY;
+	color_blending.attachmentCount = 1;
+	color_blending.pAttachments = &color_blend_attachment;
+
+	VkGraphicsPipelineCreateInfo pipeline_info = {};
+	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipeline_info.pNext = nullptr;
+
+	pipeline_info.stageCount = shader_stages.size();
+	pipeline_info.pStages = shader_stages.data();
+	pipeline_info.pVertexInputState = &vertex_input_info;
+	pipeline_info.pInputAssemblyState = &input_assembly;
+	pipeline_info.pViewportState = &viewport_info;
+	pipeline_info.pRasterizationState = &rasterizer;
+	pipeline_info.pMultisampleState = &multisampling;
+	pipeline_info.pColorBlendState = &color_blending;
+	pipeline_info.layout = pipeline_layout;
+	pipeline_info.renderPass = pass;
+	pipeline_info.subpass = 0;
+	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
+
+	VkPipeline new_pipeline;
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &new_pipeline) != VK_SUCCESS)
+	{
+		ERR("Couldn't create pipeline");
+		return VK_NULL_HANDLE;
+	}
+
+	return new_pipeline;
 }

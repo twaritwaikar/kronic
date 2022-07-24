@@ -8,7 +8,7 @@ class BaseEvent
 {
 public:
 	static inline Vector<BaseEventLink<EventData>*> queue;
-	static void propagate(const EventData& e)
+	static void fire(const EventData& e)
 	{
 		for (BaseEventLink<EventData>* event_link : queue)
 		{
@@ -17,18 +17,12 @@ public:
 	}
 };
 
-struct Event
+struct EventWindowResizing : public BaseEvent<EventWindowResizing>
 {
-	struct Window
-	{
-		struct Resizing : public BaseEvent<Resizing>
-		{
-			uint32_t width;
-			uint32_t height;
-		};
+	uint32_t width;
+	uint32_t height;
+};
 
-		struct Closing : public BaseEvent<Closing>
-		{
-		};
-	};
+struct EventWindowClosing : public BaseEvent<EventWindowClosing>
+{
 };

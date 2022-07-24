@@ -1,6 +1,7 @@
 #include "file_system.h"
 
 #include <filesystem>
+#include <fstream>
 
 #include "core/log.h"
 
@@ -24,6 +25,23 @@ Optional<FileYAML> FileSystem::read_yaml(const String& path)
 		ERR("Could not load YAML file from {}. {}", path, e->what());
 	}
 	return {};
+}
+
+Optional<File> FileSystem::read_file(const String& path)
+{
+	std::ifstream file(path.c_str(), std::ios::binary);
+
+	if (!file.is_open())
+	{
+		ERR("Could not read file: {}", path);
+		return {};
+	}
+
+	File file_obj;
+	file_obj.path = path;
+	file_obj.contents = { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+
+	return file_obj;
 }
 
 void FileSystem::set_current_directory_to_root_file(const String& root_file_name)
